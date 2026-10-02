@@ -38,6 +38,8 @@ function render(){
     '</nav></aside><main class="main"><header class="top"><div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">'+title+'</h1></div>'+
     '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
     '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+'</nav></div>';
+  // Paint the Snake board after its container is inserted into the DOM.
+  if(S.result && S.goal.toLowerCase().includes('snake')) drawSnake();
 }
 
 function dashboard(){
