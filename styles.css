@@ -10,3 +10,9 @@
 .step.working{border-color:#7c3aed}
 .step.done{border-color:#22c55e}
 .badge.done{color:#22c55e}
+
+
+.quick{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.quick h2{margin:0 0 6px}
+.quick p{margin:0}
+@media(max-width:700px){.quick{flex-direction:column;align-items:stretch}.quick .primary{width:100%}}
