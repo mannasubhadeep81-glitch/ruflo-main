@@ -39,7 +39,7 @@ function render(){
     '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
     '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+'</nav></div>';
   // Paint the Snake board after its container is inserted into the DOM.
-  if(S.result && S.goal.toLowerCase().includes('snake')) drawSnake();
+  if(S.result){ const g=S.goal.toLowerCase(); if(g.includes('snake')) drawSnake(); if(g.includes('temple')||g.includes('tample')||g.includes('runner')) drawTempleRun(); if(g.includes('racing')||g.includes('car race')||g.includes('racing game')) drawRacing(); if(g.includes(' game')) drawGenericGame(); }
 }
 
 function dashboard(){
@@ -49,7 +49,7 @@ function dashboard(){
   }).join('');
   const goalText=S.goal.toLowerCase();
   const result=S.result?buildFromGoal(goalText):'';
-  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Write what you want in plain English. Ruflo selects a working app builder or creates a build blueprint.</p></div><button class="primary" onclick="launchDemo()">🚀 Try Snake Demo</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
+  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Write what you want in plain English. Ruflo selects a working app builder or creates a build blueprint.</p></div><button class="primary" onclick="launchDemo()">🎮 Try Game Demo</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
     '<div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div>'+
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
     '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
@@ -167,9 +167,51 @@ function stepSnake(){
   }else snakeState.body.pop();
   drawSnake();
 }
+let runnerTimer=null;
+let runnerState={lane:1,score:0,running:false,obstacles:[]};
+function templeRunGame(){
+  return '<div class="card result"><div class="section"><h2>Built Temple Run Game</h2><span class="badge done">working</span></div><div class="runnerWrap"><div class="runnerHud">Distance: <b id="runnerScore">0</b></div><div id="runnerTrack" class="runnerTrack"><div class="runnerPlayer" id="runnerPlayer">🏃</div></div><button class="primary" onclick="startTempleRun()">▶ Start Temple Run</button><div class="gameControls"><button onclick="runnerMove(-1)">←</button><button onclick="runnerJump()">⬆</button><button onclick="runnerMove(1)">→</button></div></div><p class="muted">Playable endless-runner preview based on your Temple Run request.</p></div>';
+}
+function drawTempleRun(){
+  const t=document.getElementById('runnerTrack'); if(!t)return;
+  t.innerHTML='<div class="runnerRoad"></div><div class="runnerPlayer" id="runnerPlayer">🏃</div>'+runnerState.obstacles.map((o,i)=>'<div class="runnerObstacle" style="left:'+((o.lane*33.333)+4)+'%;top:'+o.y+'px" data-i="'+i+'">🪨</div>').join('');
+  const p=document.getElementById('runnerPlayer'); if(p)p.style.left=(runnerState.lane*33.333+4)+'%';
+  const s=document.getElementById('runnerScore'); if(s)s.textContent=runnerState.score;
+}
+function startTempleRun(){
+  clearInterval(runnerTimer); runnerState={lane:1,score:0,running:true,obstacles:[]}; drawTempleRun();
+  runnerTimer=setInterval(()=>{
+    runnerState.score++;
+    runnerState.obstacles=runnerState.obstacles.map(o=>({...o,y:o.y+9})).filter(o=>o.y<330);
+    if(Math.random()<.18)runnerState.obstacles.push({lane:Math.floor(Math.random()*3),y:-30});
+    if(runnerState.obstacles.some(o=>o.lane===runnerState.lane&&o.y>260)){clearInterval(runnerTimer);runnerState.running=false;toast('Obstacle hit — press Start Temple Run');}
+    drawTempleRun();
+  },120);
+}
+function runnerMove(n){if(!runnerState.running)return;runnerState.lane=Math.max(0,Math.min(2,runnerState.lane+n));drawTempleRun();}
+function runnerJump(){if(!runnerState.running)return;toast('Jump!');}
+function racingGame(){
+  return '<div class="card result"><div class="section"><h2>Built Racing Game</h2><span class="badge done">working</span></div><div class="racingWrap"><div class="racingHud">Speed: <b id="raceSpeed">0</b> km/h</div><div id="raceTrack" class="raceTrack"><div class="raceCar" id="raceCar">🏎️</div></div><button class="primary" onclick="startRacing()">▶ Start Race</button><div class="gameControls"><button onclick="raceMove(-1)">←</button><button onclick="raceBoost()">⚡</button><button onclick="raceMove(1)">→</button></div></div><p class="muted">Playable mobile racing preview based on your request.</p></div>';
+}
+let raceTimer=null,raceState={lane:1,speed:0};
+function drawRacing(){const t=document.getElementById('raceTrack');if(!t)return;t.innerHTML='<div class="raceRoad"></div><div class="raceCar" id="raceCar">🏎️</div>';const c=document.getElementById('raceCar');if(c)c.style.left=(raceState.lane*33.333+4)+'%';const s=document.getElementById('raceSpeed');if(s)s.textContent=raceState.speed;}
+function startRacing(){clearInterval(raceTimer);raceState={lane:1,speed:40};drawRacing();raceTimer=setInterval(()=>{raceState.speed=Math.min(220,raceState.speed+2);drawRacing()},250);}
+function raceMove(n){raceState.lane=Math.max(0,Math.min(2,raceState.lane+n));drawRacing();}
+function raceBoost(){raceState.speed=Math.min(300,raceState.speed+25);drawRacing();toast('Nitro boost!');}
+function genericGame(goal){
+  return '<div class="card result"><div class="section"><h2>Built Game Preview</h2><span class="badge done">working</span></div><div class="genericGame"><div class="genericGameTitle">'+escapeHtml(goal)+'</div><div id="genericGameBoard" class="genericGameBoard"><div id="genericPlayer" class="genericPlayer">🎮</div><div id="genericObstacle" class="genericObstacle">🧱</div></div><button class="primary" onclick="startGenericGame()">▶ Start Game</button><div class="gameControls"><button onclick="genericMove(-1)">←</button><button onclick="genericJump()">⬆</button><button onclick="genericMove(1)">→</button></div></div><p class="muted">A playable browser prototype generated from the game request. A real backend is required for full AI-generated game code.</p></div>';
+}
+let genericTimer=null,genericPos=50,genericScore=0;
+function drawGenericGame(){const p=document.getElementById('genericPlayer');if(p)p.style.left=genericPos+'%';const o=document.getElementById('genericObstacle');if(o)o.style.left=((genericScore*7)%80+10)+'%';}
+function startGenericGame(){clearInterval(genericTimer);genericScore=0;genericPos=50;drawGenericGame();genericTimer=setInterval(()=>{genericScore++;if(Math.abs(genericPos-(((genericScore*7)%80)+10))<7){clearInterval(genericTimer);toast('Collision — press Start Game');}drawGenericGame()},220);}
+function genericMove(n){genericPos=Math.max(8,Math.min(92,genericPos+n*8));drawGenericGame();}
+function genericJump(){toast('Jump!');}
+
 function buildFromGoal(goalText){
   const g=goalText||'';
   if(g.includes('snake'))return snakeGame();
+  if(g.includes('temple')||g.includes('tample')||g.includes('runner'))return templeRunGame();
+  if(g.includes('racing')||g.includes('car race')||g.includes('racing game'))return racingGame();
   if(g.includes('calculator')||g.includes('calc'))return calculator();
   if(g.includes('todo')||g.includes('to-do')||g.includes('task list'))return todoGame();
   if(g.includes('timer')||g.includes('stopwatch')||g.includes('countdown'))return timerGame();
@@ -177,6 +219,7 @@ function buildFromGoal(goalText){
   if(g.includes('counter')||g.includes('count'))return counterGame();
   if(g.includes('notes')||g.includes('note app'))return notesGame();
   if(g.includes('landing page')||g.includes('portfolio')||g.includes('website'))return landingGame();
+  if(g.includes(' game')||g.endsWith('game'))return genericGame(g);
   return genericApp(g);
 }
 
