@@ -45,7 +45,8 @@ function dashboard(){
     const state=S.currentStep===i?'working':(S.currentStep>i?'done':'');
     return '<div class="step '+state+'"><span class="num">'+(state==='done'?'✓':(i+1))+'</span><div><b>'+x[0]+'</b><br><small class="muted">'+x[1]+'</small></div><span class="stepstate">'+(state==='working'?'Running':state==='done'?'Done':'Pending')+'</span></div>';
   }).join('');
-  const result=S.result?(S.goal.toLowerCase().includes('calculator')?calculator():'<div class="card result"><div class="section"><h2>Workflow result</h2><span class="badge done">completed</span></div><p>'+S.result+'</p><small class="muted">Browser demo result. Real AI execution requires a connected Ruflo backend/API.</small></div>'):'';
+  const goalText=S.goal.toLowerCase();
+  const result=S.result?(goalText.includes('snake')?snakeGame():(goalText.includes('calculator')?calculator():'<div class="card result"><div class="section"><h2>Workflow result</h2><span class="badge done">completed</span></div><p>'+S.result+'</p><small class="muted">Browser demo result. Real AI execution requires a connected Ruflo backend/API.</small></div>')):'';
   return '<section class="quick card"><div><h2>Try a ready-made app</h2><p class="muted">No goal needed. Launch a working calculator now.</p></div><button class="primary" onclick="launchDemo()">🚀 Launch calculator</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
     '<div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div>'+
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
@@ -120,6 +121,50 @@ function start(){
   },1100);
 }
 
+let snakeTimer=null;
+let snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],food:[9,9],score:0,running:false};
+function snakeGame(){
+  return '<div class="card result"><div class="section"><h2>Built Snake Game</h2><span class="badge done">working</span></div>'+
+  '<div class="snakeWrap"><div class="snakeScore">Score: <b id="snakeScore">0</b></div><div id="snakeBoard" class="snakeBoard"></div>'+
+  '<button class="primary" onclick="startSnake()">▶ Start Snake</button>'+
+  '<div class="snakeControls"><button onclick="snakeDir(0,-1)">↑</button><div><button onclick="snakeDir(-1,0)">←</button><button onclick="snakeDir(0,1)">↓</button><button onclick="snakeDir(1,0)">→</button></div></div></div>'+
+  '<p class="muted">A playable Snake game generated from the goal.</p></div>';
+}
+function drawSnake(){
+  const b=document.getElementById('snakeBoard'); if(!b)return;
+  b.innerHTML='';
+  for(let y=0;y<15;y++)for(let x=0;x<15;x++){
+    const cell=document.createElement('span'); cell.className='snakeCell';
+    if(snakeState.body.some(p=>p[0]===x&&p[1]===y))cell.classList.add('snakeBody');
+    if(snakeState.food[0]===x&&snakeState.food[1]===y)cell.classList.add('snakeFood');
+    b.appendChild(cell);
+  }
+  const sc=document.getElementById('snakeScore'); if(sc)sc.textContent=snakeState.score;
+}
+function startSnake(){
+  clearInterval(snakeTimer);
+  snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],food:[9,9],score:0,running:true};
+  drawSnake();
+  snakeTimer=setInterval(stepSnake,180);
+}
+function snakeDir(x,y){
+  if(x===-snakeState.dir[0]&&y===-snakeState.dir[1])return;
+  snakeState.dir=[x,y];
+}
+function stepSnake(){
+  if(!snakeState.running)return;
+  const h=snakeState.body[0], n=[h[0]+snakeState.dir[0],h[1]+snakeState.dir[1]];
+  if(n[0]<0||n[0]>=15||n[1]<0||n[1]>=15||snakeState.body.some(p=>p[0]===n[0]&&p[1]===n[1])){
+    snakeState.running=false;clearInterval(snakeTimer);toast('Game over — press Start Snake');return;
+  }
+  snakeState.body.unshift(n);
+  if(n[0]===snakeState.food[0]&&n[1]===snakeState.food[1]){
+    snakeState.score++;
+    do{snakeState.food=[Math.floor(Math.random()*15),Math.floor(Math.random()*15)]}
+    while(snakeState.body.some(p=>p[0]===snakeState.food[0]&&p[1]===snakeState.food[1]));
+  }else snakeState.body.pop();
+  drawSnake();
+}
 function calculator(){
   return '<div class="card result"><div class="section"><h2>Built calculator</h2><span class="badge done">working</span></div>'+
   '<div class="calc"><input id="calcDisplay" value="0" readonly>'+
