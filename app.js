@@ -47,7 +47,7 @@ function dashboard(){
   }).join('');
   const goalText=S.goal.toLowerCase();
   const result=S.result?(goalText.includes('snake')?snakeGame():(goalText.includes('calculator')?calculator():'<div class="card result"><div class="section"><h2>Workflow result</h2><span class="badge done">completed</span></div><p>'+S.result+'</p><small class="muted">Browser demo result. Real AI execution requires a connected Ruflo backend/API.</small></div>')):'';
-  return '<section class="quick card"><div><h2>Try a ready-made app</h2><p class="muted">No goal needed. Launch a working calculator now.</p></div><button class="primary" onclick="launchDemo()">🚀 Launch calculator</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
+  return '<section class="quick card"><div><h2>Try a ready-made app</h2><p class="muted">No goal needed. Launch a working Snake game now.</p></div><button class="primary" onclick="launchDemo()">🚀 Launch Snake Game</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
     '<div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div>'+
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
     '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
@@ -79,12 +79,12 @@ function settings(){
 function setView(v){S.view=v;render();}
 
 function launchDemo(){
-  S.goal='Build a simple calculator with +, −, × and ÷ buttons.';
+  S.goal='Build a playable Snake game with score and touch controls.';
   S.progress=100;
   S.running=false;
   S.currentStep=5;
-  S.result='Calculator generated and ready to use.';
-  S.activity.unshift('Demo app launched: working calculator');
+  S.result='Snake game generated and ready to play.';
+  S.activity.unshift('Demo app launched: working Snake game');
   render();
 }
 function clearGoal(){
