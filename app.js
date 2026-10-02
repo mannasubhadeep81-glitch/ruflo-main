@@ -111,6 +111,25 @@ function start(){
   },1100);
 }
 
+function calculator(){
+  return '<div class="card result"><div class="section"><h2>Built calculator</h2><span class="badge done">working</span></div>'+
+  '<div class="calc"><input id="calcDisplay" value="0" readonly>'+
+  '<div class="calcgrid">'+
+  ['7','8','9','÷','4','5','6','×','1','2','3','−','C','0','.','+','='].map(k=>'<button class="calcbtn" onclick="calcKey(\''+k+'\')">'+k+'</button>').join('')+
+  '</div></div><p class="muted">This is an actual working calculator created inside the workflow result.</p></div>';
+}
+let calcValue='';
+let calcOp=null;
+let calcFirst=null;
+function calcKey(k){
+  const d=document.getElementById('calcDisplay');
+  if(!d)return;
+  if(k==='C'){calcValue='';calcOp=null;calcFirst=null;d.value='0';return;}
+  if('0123456789.'.includes(k)){if(k==='.'&&calcValue.includes('.'))return;calcValue+=k;d.value=calcValue||'0';return;}
+  if(['+','−','×','÷'].includes(k)){calcFirst=Number(calcValue||d.value||0);calcOp=k;calcValue='';return;}
+  if(k==='='&&calcOp){const b=Number(calcValue||0);let r=calcOp==='+'?calcFirst+b:calcOp==='−'?calcFirst-b:calcOp==='×'?calcFirst*b:calcFirst/b;d.value=String(r);calcValue=String(r);calcOp=null;calcFirst=null;}
+}
+
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 }
