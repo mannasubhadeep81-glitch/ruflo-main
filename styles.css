@@ -16,3 +16,13 @@
 .quick h2{margin:0 0 6px}
 .quick p{margin:0}
 @media(max-width:700px){.quick{flex-direction:column;align-items:stretch}.quick .primary{width:100%}}
+
+
+.snakeWrap{max-width:360px}
+.snakeScore{font-size:16px;margin:8px 0 10px}
+.snakeBoard{display:grid;grid-template-columns:repeat(15,1fr);aspect-ratio:1;border:2px solid #303646;border-radius:12px;overflow:hidden;background:#080b12;margin-bottom:12px}
+.snakeCell{min-width:0;border:1px solid rgba(255,255,255,.025)}
+.snakeCell.snakeBody{background:#22c55e}
+.snakeCell.snakeFood{background:#ef4444;border-radius:50%}
+.snakeControls{text-align:center;margin-top:12px}
+.snakeControls button{min-width:52px;min-height:44px;margin:3px;border:1px solid #303646;border-radius:10px;background:#151a25;color:#fff;font-size:20px}
