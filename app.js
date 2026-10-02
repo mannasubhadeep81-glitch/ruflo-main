@@ -1,1 +1,124 @@
-const S={view:'dashboard',running:false,progress:0,goal:'',agents:[['Planner','Goal decomposition'],['Research','Evidence gathering'],['Builder','Implementation'],['Tester','Quality checks'],['Reviewer','Final review'],['DevOps','Deployment']],activity:['Workspace initialized','Agent registry loaded','Ready for a new goal']};const steps=['Understand the goal','Create an execution plan','Coordinate specialist agents','Run checks and review','Prepare the result'];function nav(id,label){return '<button class="'+(S.view===id?'active':'')+'" onclick="setView(\''+id+'\')">'+label+'</button>'}function render(){let v=S.view;let title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings'}[v];let body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():dashboard();document.getElementById('app').innerHTML='<div class="shell"><aside class="side"><div class="brand"><span class="logo">R</span> Ruflo</div><nav class="nav">'+nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+'</nav></aside><main class="main"><header class="top"><div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">'+title+'</h1></div><div class="status"><i class="dot"></i>System ready</div></header>'+body+'</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+'</nav></div>'}function dashboard(){return '<section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div><div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div><div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div><div class="card metric"><b>Ready</b><span>Workspace</span></div></section><section class="layout"><div class="card"><div class="section"><h2>What do you want to build?</h2><span class="muted">Plain English</span></div><textarea id="goal" placeholder="Example: Build a healthcare app with login, appointments and a secure API.">'+S.goal+'</textarea><div class="actions"><button class="primary" onclick="start()">▶ Start AI workflow</button><button class="secondary" onclick="clearGoal()">Clear</button></div><div class="bar"><i style="width:'+S.progress+'%"></i></div></div><div class="card"><div class="section"><h2>Execution plan</h2><span class="muted">'+(S.running?'Running':'Ready')+'</span></div><div class="plan">'+steps.map((x,i)=>'<div class="step"><span class="num">'+(i+1)+'</span><div><b>'+x+'</b><br><small class="muted">'+['Goal parsing and constraints','Break work into executable tasks','Assign work to specialists','Validate output and quality','Package the result'][i]+'</small></div></div>').join('')+'</div></div></section>'}function agents(){return '<div class="card"><div class="section"><h2>Agent team</h2><button class="secondary" onclick="start()">▶ Run workflow</button></div>'+S.agents.map((a,i)=>'<div class="agent"><div class="avatar">◈</div><div><b>'+a[0]+'</b><br><small class="muted">'+a[1]+'</small></div><span class="badge '+(S.running&&i<3?'working':'idle')+'">'+(S.running&&i<3?'working':'idle')+'</span></div>').join('')+'</div>'}function activity(){return '<div class="card"><div class="section"><h2>Live activity</h2><span class="muted">Latest first</span></div><div class="activity">'+S.activity.map((x,i)=>'<div><b>'+x+'</b><br><small class="muted">'+(i?'Earlier':'Now')+'</small></div>').join('')+'</div></div>'}function settings(){return '<div class="card"><div class="section"><h2>Workspace settings</h2></div><p class="muted">This is the Ruflo browser control surface. The current workflow is a frontend simulation. Connect a real agent backend/API before using it for production execution.</p><button class="secondary" onclick="toast(\'Saved locally\')">Save preferences</button></div>'}function setView(v){S.view=v;render()}function clearGoal(){S.goal='';S.progress=0;S.running=false;render()}function start(){let e=document.getElementById('goal');if(e)S.goal=e.value.trim();if(!S.goal){toast('Enter a goal first');return}S.running=true;S.progress=5;S.activity.unshift('New workflow started: '+S.goal.slice(0,60));render();let p=5,t=setInterval(()=>{p+=19;S.progress=Math.min(p,100);render();if(p>=100){clearInterval(t);S.running=false;S.activity.unshift('Workflow completed — review the result');render();toast('Workflow completed')}} ,900)}function toast(m){let d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}render();
+const S={
+  view:'dashboard',
+  running:false,
+  progress:0,
+  goal:'',
+  currentStep:-1,
+  result:'',
+  agents:[
+    ['Planner','Goal decomposition'],
+    ['Research','Evidence gathering'],
+    ['Builder','Implementation'],
+    ['Tester','Quality checks'],
+    ['Reviewer','Final review'],
+    ['DevOps','Deployment']
+  ],
+  activity:['Workspace initialized','Agent registry loaded','Ready for a new goal']
+};
+
+const steps=[
+  ['Understand the goal','Goal parsing and constraints'],
+  ['Create an execution plan','Break work into executable tasks'],
+  ['Coordinate specialist agents','Assign work to specialists'],
+  ['Run checks and review','Validate output and quality'],
+  ['Prepare the result','Package the result']
+];
+
+function nav(id,label){
+  return '<button class="'+(S.view===id?'active':'')+'" onclick="setView(\''+id+'\')">'+label+'</button>';
+}
+
+function render(){
+  const v=S.view;
+  const title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings'}[v];
+  const body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():dashboard();
+  document.getElementById('app').innerHTML=
+    '<div class="shell"><aside class="side"><div class="brand"><span class="logo">R</span> Ruflo</div><nav class="nav">'+
+    nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+
+    '</nav></aside><main class="main"><header class="top"><div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">'+title+'</h1></div>'+
+    '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
+    '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+'</nav></div>';
+}
+
+function dashboard(){
+  const plan=steps.map((x,i)=>{
+    const state=S.currentStep===i?'working':(S.currentStep>i?'done':'');
+    return '<div class="step '+state+'"><span class="num">'+(state==='done'?'✓':(i+1))+'</span><div><b>'+x[0]+'</b><br><small class="muted">'+x[1]+'</small></div><span class="stepstate">'+(state==='working'?'Running':state==='done'?'Done':'Pending')+'</span></div>';
+  }).join('');
+  const result=S.result?'<div class="card result"><div class="section"><h2>Workflow result</h2><span class="badge done">completed</span></div><p>'+S.result+'</p><small class="muted">This result is generated by the browser workflow demo. Real AI execution requires a connected Ruflo backend/API.</small></div>':'';
+  return '<section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
+    '<div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div>'+
+    '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
+    '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
+    '<section class="layout"><div class="card"><div class="section"><h2>What do you want to build?</h2><span class="muted">Plain English</span></div>'+
+    '<textarea id="goal" placeholder="Example: Build a healthcare app with login, appointments and a secure API.">'+escapeHtml(S.goal)+'</textarea>'+
+    '<div class="actions"><button class="primary" onclick="start()">'+(S.running?'⏳ Workflow running…':'▶ Start AI workflow')+'</button>'+
+    '<button class="secondary" onclick="clearGoal()">Clear</button></div><div class="bar"><i style="width:'+S.progress+'%"></i></div></div>'+
+    '<div class="card"><div class="section"><h2>Execution plan</h2><span class="muted">'+(S.running?'Running':'Ready')+'</span></div><div class="plan">'+plan+'</div></div></section>'+result;
+}
+
+function agents(){
+  return '<div class="card"><div class="section"><h2>Agent team</h2><button class="secondary" onclick="start()">▶ Run workflow</button></div>'+
+    S.agents.map((a,i)=>'<div class="agent"><div class="avatar">◈</div><div><b>'+a[0]+'</b><br><small class="muted">'+a[1]+'</small></div><span class="badge '+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'">'+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'</span></div>').join('')+
+    '</div>';
+}
+
+function activity(){
+  return '<div class="card"><div class="section"><h2>Live activity</h2><span class="muted">Latest first</span></div><div class="activity">'+
+    S.activity.map((x,i)=>'<div><b>'+escapeHtml(x)+'</b><br><small class="muted">'+(i?'Earlier':'Now')+'</small></div>').join('')+
+    '</div></div>';
+}
+
+function settings(){
+  return '<div class="card"><div class="section"><h2>Workspace settings</h2></div>'+
+    '<p class="muted">The current GitHub Pages version is a browser control surface. It can animate and manage the workflow UI, but it cannot run Ruflo server-side AI agents by itself.</p>'+
+    '<button class="secondary" onclick="toast(\'Preferences saved locally\')">Save preferences</button></div>';
+}
+
+function setView(v){S.view=v;render();}
+
+function clearGoal(){
+  S.goal='';S.progress=0;S.running=false;S.currentStep=-1;S.result='';
+  render();
+}
+
+function start(){
+  const e=document.getElementById('goal');
+  if(e)S.goal=e.value.trim();
+  if(!S.goal){toast('Enter a goal first');return;}
+  if(S.running){return;}
+  S.running=true;S.progress=2;S.currentStep=0;S.result='';
+  S.activity.unshift('Workflow started: '+S.goal.slice(0,80));
+  render();
+
+  let step=0;
+  const timer=setInterval(()=>{
+    step++;
+    S.currentStep=step;
+    S.progress=Math.min(20+step*20,100);
+    S.activity.unshift('Step '+Math.min(step+1,5)+': '+(steps[Math.min(step,4)][0]));
+    render();
+    if(step>=5){
+      clearInterval(timer);
+      S.running=false;
+      S.currentStep=5;
+      S.progress=100;
+      S.result='Goal received successfully: “'+S.goal+'”. The workflow plan has been prepared and the six specialist roles are ready for backend execution.';
+      S.activity.unshift('Workflow completed: result prepared');
+      render();
+      toast('Workflow completed');
+    }
+  },1100);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+
+function toast(m){
+  const d=document.createElement('div');
+  d.className='toast';d.textContent=m;document.body.appendChild(d);
+  setTimeout(()=>d.remove(),2200);
+}
+
+render();
