@@ -75,6 +75,5 @@
 .agentGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
 .agentCard{display:flex;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}
 .agentIcon{font-size:26px}.agentInfo{flex:1}.agentInfo small{color:var(--muted)}
-.agentState{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06)}
-.agentState.working{background:rgba(255,180,0,.14)}.agentState.completed{background:rgba(60,210,130,.14)}
+.agentState{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06);display:inline-flex;align-items:center;gap:6px}.agentState::before{content:'';width:7px;height:7px;border-radius:50%;background:#77808f}.agentState.working{background:rgba(60,210,130,.14);color:#7dffad}.agentState.working::before{background:#35e27b;box-shadow:0 0 10px rgba(53,226,123,.9);animation:rufloPulse 1.1s infinite}.agentState.completed{background:rgba(60,210,130,.14);color:#7dffad}.agentState.completed::before{background:#35e27b;box-shadow:0 0 7px rgba(53,226,123,.65)}@keyframes rufloPulse{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
 @media(max-width:700px){.agentGrid{grid-template-columns:1fr}}
