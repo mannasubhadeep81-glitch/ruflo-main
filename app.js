@@ -265,12 +265,16 @@ function start(){
 let snakeTimer=null;
 let snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],food:[9,9],score:0,running:false};
 function snakeGame(){
-  return '<div class="card result"><div class="section"><h2>Built Snake Game</h2><span class="badge done">working</span></div>'+
-  '<div class="snakeWrap"><div class="snakeScore">Score: <b id="snakeScore">0</b></div><div id="snakeBoard" class="snakeBoard"></div>'+
-  '<button class="primary" onclick="startSnake()">▶ Start Snake</button>'+
+  return '<div class="card result"><div class="section"><h2>Built Snake Game</h2><span class="badge done">playable</span></div>'+
+  '<div class="snakeWrap"><div class="snakeScore">Score: <b id="snakeScore">0</b> • High Score: <b id="snakeHigh">0</b></div>'+
+  '<div id="snakeBoard" class="snakeBoard" tabindex="0"></div>'+
+  '<div class="actions"><button class="primary" onclick="startSnake()">▶ Start / Restart</button><button class="secondary" onclick="toggleSnakePause()">⏸ Pause</button></div>'+
   '<div class="snakeControls"><button onclick="snakeDir(0,-1)">↑</button><div><button onclick="snakeDir(-1,0)">←</button><button onclick="snakeDir(0,1)">↓</button><button onclick="snakeDir(1,0)">→</button></div></div></div>'+
-  '<p class="muted">A playable Snake game generated from the goal.</p></div>';
+  '<p class="muted">Playable Snake game with touch/keyboard controls, scoring, collision detection and increasing speed.</p></div>';
 }
+let snakeTimer=null;
+let snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],nextDir:[1,0],food:[9,9],score:0,running:false,paused:false,speed:180};
+let snakeHigh=Number(localStorage.getItem('ruflo_snake_high')||0);
 function drawSnake(){
   const b=document.getElementById('snakeBoard'); if(!b)return;
   b.innerHTML='';
@@ -281,31 +285,50 @@ function drawSnake(){
     b.appendChild(cell);
   }
   const sc=document.getElementById('snakeScore'); if(sc)sc.textContent=snakeState.score;
+  const hi=document.getElementById('snakeHigh'); if(hi)hi.textContent=snakeHigh;
 }
 function startSnake(){
   clearInterval(snakeTimer);
-  snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],food:[9,9],score:0,running:true};
-  drawSnake();
-  snakeTimer=setInterval(stepSnake,180);
+  snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],nextDir:[1,0],food:[9,9],score:0,running:true,paused:false,speed:180};
+  drawSnake(); document.getElementById('snakeBoard')?.focus();
+  snakeTimer=setInterval(stepSnake,snakeState.speed);
+}
+function toggleSnakePause(){
+  if(!snakeState.running)return;
+  snakeState.paused=!snakeState.paused;
+  toast(snakeState.paused?'Snake paused':'Snake resumed');
 }
 function snakeDir(x,y){
+  if(!snakeState.running||snakeState.paused)return;
   if(x===-snakeState.dir[0]&&y===-snakeState.dir[1])return;
-  snakeState.dir=[x,y];
+  snakeState.nextDir=[x,y];
 }
 function stepSnake(){
-  if(!snakeState.running)return;
+  if(!snakeState.running||snakeState.paused)return;
+  snakeState.dir=snakeState.nextDir;
   const h=snakeState.body[0], n=[h[0]+snakeState.dir[0],h[1]+snakeState.dir[1]];
   if(n[0]<0||n[0]>=15||n[1]<0||n[1]>=15||snakeState.body.some(p=>p[0]===n[0]&&p[1]===n[1])){
-    snakeState.running=false;clearInterval(snakeTimer);toast('Game over — press Start Snake');return;
+    snakeState.running=false;clearInterval(snakeTimer);
+    if(snakeState.score>snakeHigh){snakeHigh=snakeState.score;localStorage.setItem('ruflo_snake_high',snakeHigh);}
+    drawSnake();toast('Game over — press Start / Restart');return;
   }
   snakeState.body.unshift(n);
   if(n[0]===snakeState.food[0]&&n[1]===snakeState.food[1]){
     snakeState.score++;
+    if(snakeState.score>snakeHigh){snakeHigh=snakeState.score;localStorage.setItem('ruflo_snake_high',snakeHigh);}
     do{snakeState.food=[Math.floor(Math.random()*15),Math.floor(Math.random()*15)]}
     while(snakeState.body.some(p=>p[0]===snakeState.food[0]&&p[1]===snakeState.food[1]));
+    if(snakeState.speed>70){
+      snakeState.speed=Math.max(70,snakeState.speed-6);
+      clearInterval(snakeTimer);snakeTimer=setInterval(stepSnake,snakeState.speed);
+    }
   }else snakeState.body.pop();
   drawSnake();
 }
+document.addEventListener('keydown',e=>{
+  const m={ArrowUp:[0,-1],w:[0,-1],W:[0,-1],ArrowDown:[0,1],s:[0,1],S:[0,1],ArrowLeft:[-1,0],a:[-1,0],A:[-1,0],ArrowRight:[1,0],d:[1,0],D:[1,0]};
+  if(m[e.key]){e.preventDefault();snakeDir(...m[e.key]);}
+});
 let runnerTimer=null;
 let runnerState={lane:1,score:0,running:false,obstacles:[]};
 function templeRunGame(){
