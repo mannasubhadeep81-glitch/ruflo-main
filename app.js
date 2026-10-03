@@ -6,13 +6,15 @@ const S={
   currentStep:-1,
   result:'',
   agents:[
-    ['Planner','Goal decomposition'],
-    ['Research','Evidence gathering'],
-    ['Builder','Implementation'],
-    ['Tester','Quality checks'],
-    ['Reviewer','Final review'],
-    ['DevOps','Deployment']
+    ['Planner','Goal analysis • requirements • task graph'],
+    ['Research','Web/docs/assets discovery • evidence'],
+    ['Builder','Code generation • UI • app/game implementation'],
+    ['Tester','Runtime checks • interaction tests • bug detection'],
+    ['Reviewer','UX • requirements • security • quality review'],
+    ['DevOps','Build • deployment • environment • release checks']
   ],
+  agentState:{Planner:'idle',Research:'idle',Builder:'idle',Tester:'idle',Reviewer:'idle',DevOps:'idle'},
+  agentLog:[],
   activity:['Workspace initialized','Agent registry loaded','Ready for a new goal'],
   elapsed:0,
   estimated:6,
@@ -117,9 +119,9 @@ function profile(){return '<section class="card"><div class="section"><div><div 
 function connections(){return '<section class="card"><div class="section"><div><div class="eyebrow">Permission hub</div><h2>Connected apps & services</h2><p class="muted">Ruflo will only request a permission when a build actually needs that service.</p></div><span class="badge done">'+S.connections.filter(x=>x[2]==='connected').length+' connected</span></div><div class="connectionList">'+S.connections.map((x,i)=>'<div class="connectionRow"><div><b>'+escapeHtml(x[0])+'</b><small class="muted">'+escapeHtml(x[1])+'</small></div><button class="'+(x[2]==='connected'?'secondary':'primary')+'" onclick="requestConnection('+i+')">'+(x[2]==='connected'?'Connected':x[2]==='pending'?'Permission requested':'Connect')+'</button></div>').join('')}</div><p class="muted">Note: Ruflo cannot silently grant third-party account permissions. The service's own authorization screen must approve access.</p></section>';}
 function requestConnection(i){const x=S.connections[i];if(!x)return;if(x[2]==='connected'){toast(x[0]+' is already connected');return;}x[2]='pending';S.activity.unshift('Permission requested: '+x[0]);render();setTimeout(()=>{toast('Authorization for '+x[0]+' must be completed in its official permission flow.');},50);}
 function agents(){
-  return '<div class="card"><div class="section"><h2>Agent team</h2><button class="secondary" onclick="start()">▶ Run workflow</button></div>'+
-    S.agents.map((a,i)=>'<div class="agent"><div class="avatar">◈</div><div><b>'+a[0]+'</b><br><small class="muted">'+a[1]+'</small></div><span class="badge '+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'">'+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'</span></div>').join('')+
-    '</div>';
+  const icons={Planner:'🧠',Research:'🔎',Builder:'👨‍💻',Tester:'🧪',Reviewer:'🔍',DevOps:'🚀'};
+  const rows=S.agents.map(a=>{const st=S.agentState[a[0]]||'idle';return '<div class="agentCard"><div class="agentIcon">'+icons[a[0]]+'</div><div class="agentInfo"><div class="section"><b>'+escapeHtml(a[0]+' Agent')+'</b><span class="agentState '+st+'">'+st+'</span></div><p class="muted">'+escapeHtml(a[1])+'</p><small>Autonomous role • structured handoff</small></div></div>';}).join('');
+  return '<section class="card"><div class="section"><div><div class="eyebrow">AI team</div><h2>Agent control center</h2><p class="muted">Ruflo selects agents from your request and passes each stage to the next agent.</p></div><span class="badge done">'+S.agents.length+' agents</span></div><div class="agentGrid">'+rows+'</div>'+(S.agentLog.length?'<div class="blueprint"><b>Latest handoffs</b>'+S.agentLog.slice(0,8).map(x=>'<p>'+escapeHtml(x)+'</p>').join('')+'</div>':'')+'</section>';
 }
 
 function activity(){
@@ -150,40 +152,32 @@ function clearGoal(){
   saveWorkspace();render();
 }
 
-function start(){
-  const e=document.getElementById('goal');
-  if(e)S.goal=e.value.trim();
-  if(!S.goal){toast('Enter a goal first');return;}
-  buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8);
-  saveWorkspace();
-  if(S.running){return;}
-  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=6;S.phase='Analyzing request';
-  S.activity.unshift('Building: '+detectBuilder(S.goal)+' — '+S.goal.slice(0,70));
-  render();
+function resetAgents(){Object.keys(S.agentState).forEach(k=>S.agentState[k]='idle');S.agentLog=[];}
+function chooseAgents(goal){
+  const g=(goal||'').toLowerCase();
+  const chosen=['Planner','Builder','Tester','Reviewer','DevOps'];
+  if(g.includes('research')||g.includes('latest')||g.includes('information')||g.includes('website')||g.includes('design'))chosen.splice(1,0,'Research');
+  return [...new Set(chosen)];
+}
+function runAgent(agent,phase){S.agentState[agent]=phase;S.agentLog.unshift(agent+' → '+phase);}
 
+function start(){
+  const e=document.getElementById('goal'); if(e)S.goal=e.value.trim();
+  if(!S.goal){toast('Enter a goal first');return;} if(S.running)return;
+  buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8); saveWorkspace();
+  resetAgents(); const chosen=chooseAgents(S.goal);
+  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=6;S.phase='Analyzing request';
+  S.activity.unshift('AI team selected: '+chosen.join(', ')); runAgent('Planner','working'); render();
   let step=0;
   const timer=setInterval(()=>{
-    step++;S.elapsed=Math.min(step,6);
-    S.currentStep=step;
-    S.progress=Math.min(20+step*20,100);
+    step++; S.elapsed=Math.min(step,6); S.currentStep=step; S.progress=Math.min(20+step*20,100);
     S.phase=['Analyzing request','Planning build','Generating app','Testing output','Preparing result','Complete'][Math.min(step,5)];
-    S.activity.unshift('Step '+Math.min(step+1,5)+': '+(steps[Math.min(step,4)][0]));
-    render();
-    if(step>=5){
-      clearInterval(timer);
-      S.running=false;
-      S.currentStep=5;
-      S.progress=100;
-      S.elapsed=6;
-      S.result='Goal received successfully: “'+S.goal+'”. The requested '+detectBuilder(S.goal)+' preview has been generated and is ready to run.';
-      S.resultReady=true;
-      S.phase='Complete';
-      S.activity.unshift('Build completed: '+detectBuilder(S.goal));
-      saveWorkspace();
-      render();
-      setTimeout(()=>{S.view='result';render();},350);
-      toast('Workflow completed');
-    }
+    const map={1:['Planner','completed'],2:['Builder','working'],3:['Tester','working'],4:['Reviewer','working'],5:['DevOps','working']};
+    const a=map[step]; if(a)runAgent(a[0],a[1]);
+    if(step===2)S.agentState.Planner='completed'; if(step===3)S.agentState.Builder='completed'; if(step===4)S.agentState.Tester='completed';
+    if(step===5){S.agentState.Reviewer='completed';S.agentState.DevOps='completed';}
+    S.activity.unshift('Agent handoff: '+(a?a[0]:'team')+' — '+S.phase); render();
+    if(step>=5){clearInterval(timer);S.running=false;S.currentStep=5;S.progress=100;S.elapsed=6;S.result='AI team completed the requested '+detectBuilder(S.goal)+' build preview.';S.resultReady=true;S.phase='Complete';S.activity.unshift('Build completed by AI agent team');saveWorkspace();render();setTimeout(()=>{S.view='result';render();},350);toast('AI agent workflow completed');}
   },1100);
 }
 
