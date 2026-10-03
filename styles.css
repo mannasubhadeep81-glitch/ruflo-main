@@ -71,3 +71,10 @@
 .connectionRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}
 .connectionRow>div{display:flex;flex-direction:column;gap:4px}
 .connectionRow small{display:block}
+
+.agentGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+.agentCard{display:flex;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}
+.agentIcon{font-size:26px}.agentInfo{flex:1}.agentInfo small{color:var(--muted)}
+.agentState{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.06)}
+.agentState.working{background:rgba(255,180,0,.14)}.agentState.completed{background:rgba(60,210,130,.14)}
+@media(max-width:700px){.agentGrid{grid-template-columns:1fr}}
