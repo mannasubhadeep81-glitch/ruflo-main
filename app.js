@@ -6,14 +6,21 @@ const S={
   currentStep:-1,
   result:'',
   agents:[
+    ['Orchestrator','Coordinates the full build lifecycle • routing • handoffs'],
     ['Planner','Goal analysis • requirements • task graph'],
+    ['Architect','App architecture • modules • APIs • technical decisions'],
     ['Research','Web/docs/assets discovery • evidence'],
+    ['UIUX','UI system • responsive UX • interaction design'],
     ['Builder','Code generation • UI • app/game implementation'],
+    ['Data','Data models • state • storage • validation'],
+    ['Security','Security review • permissions • secrets • safe defaults'],
+    ['Integrator','Connects modules • agents • services • build outputs'],
     ['Tester','Runtime checks • interaction tests • bug detection'],
+    ['Recovery','Failure analysis • repair plan • regression recovery'],
     ['Reviewer','UX • requirements • security • quality review'],
     ['DevOps','Build • deployment • environment • release checks']
   ],
-  agentState:{Planner:'idle',Research:'idle',Builder:'idle',Tester:'idle',Reviewer:'idle',DevOps:'idle'},
+  agentState:{Orchestrator:'idle',Planner:'idle',Architect:'idle',Research:'idle',UIUX:'idle',Builder:'idle',Data:'idle',Security:'idle',Integrator:'idle',Tester:'idle',Recovery:'idle',Reviewer:'idle',DevOps:'idle'},
   agentLog:[],
   activity:['Workspace initialized','Agent registry loaded','Ready for a new goal'],
   elapsed:0,
@@ -94,7 +101,7 @@ function dashboard(){
   const result=S.result?buildFromGoal(goalText):'';
   const remaining=Math.max(0,S.estimated-S.elapsed);
   const timing=S.running?'<div class="runTiming"><span>⏱ '+S.elapsed+'s elapsed</span><span>~'+remaining+'s remaining</span></div>':(S.result?'<div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Build result is ready</span></div>':'<div class="runTiming"><span>⏱ Estimated ~'+S.estimated+'s</span><span>5 build steps</span></div>');
-  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. The builder detects the request and opens the matching working prototype.</p></div><button class="primary" onclick="focusBuilder()">✨ New Build</button></section>'+
+  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. Ruflo coordinates specialist agents, validates their handoffs, recovers from failures and prepares the result.</p></div><button class="primary" onclick="focusBuilder()">✨ New Build</button></section>'+
     '<section class="card presets"><div class="section"><h2>Quick start</h2><span class="muted">Tap a template or write your own</span></div><div class="presetGrid">'+
     '<button onclick="usePreset(\'Build a playable Snake game with score and touch controls.\')">🐍 Snake</button>'+
     '<button onclick="usePreset(\'Build a Temple Run game with obstacles and touch controls.\')">🏃 Temple Run</button>'+
@@ -121,9 +128,9 @@ function connections(){
 }
 function requestConnection(i){const x=S.connections[i];if(!x)return;if(x[2]==='connected'){toast(x[0]+' is already connected');return;}x[2]='pending';S.activity.unshift('Permission requested: '+x[0]);render();setTimeout(()=>{toast('Authorization for '+x[0]+' must be completed in its official permission flow.');},50);}
 function agents(){
-  const icons={Planner:'🧠',Research:'🔎',Builder:'👨‍💻',Tester:'🧪',Reviewer:'🔍',DevOps:'🚀'};
+  const icons={Orchestrator:'🎛️',Planner:'🧠',Architect:'🏗️',Research:'🔎',UIUX:'🎨',Builder:'👨‍💻',Data:'🗃️',Security:'🛡️',Integrator:'🔗',Tester:'🧪',Recovery:'🩹',Reviewer:'🔍',DevOps:'🚀'};
   const rows=S.agents.map(a=>{const st=S.agentState[a[0]]||'idle';return '<div class="agentCard"><div class="agentIcon">'+icons[a[0]]+'</div><div class="agentInfo"><div class="section"><b>'+escapeHtml(a[0]+' Agent')+'</b><span class="agentState '+st+'">'+st+'</span></div><p class="muted">'+escapeHtml(a[1])+'</p><small>Autonomous role • structured handoff</small></div></div>';}).join('');
-  return '<section class="card"><div class="section"><div><div class="eyebrow">AI team</div><h2>Agent control center</h2><p class="muted">Ruflo selects agents from your request and passes each stage to the next agent.</p></div><span class="badge done">'+S.agents.length+' agents</span></div><div class="agentGrid">'+rows+'</div>'+(S.agentLog.length?'<div class="blueprint"><b>Latest handoffs</b>'+S.agentLog.slice(0,8).map(x=>'<p>'+escapeHtml(x)+'</p>').join('')+'</div>':'')+'</section>';
+  return '<section class="card"><div class="section"><div><div class="eyebrow">AI team</div><h2>Agent control center</h2><p class="muted">Ruflo now has specialist agents for planning, architecture, research, UI/UX, code, data, security, integration, testing, recovery, review and release.</p></div><span class="badge done">'+S.agents.length+' agents</span></div><div class="agentGrid">'+rows+'</div>'+(S.selectedAgents.length?'<div class="blueprint"><b>Selected for this build</b><p>'+S.selectedAgents.map(x=>escapeHtml(x)).join(' • ')+'</p></div>':'')+(S.agentLog.length?'<div class="blueprint"><b>Latest handoffs</b>'+S.agentLog.slice(0,12).map(x=>'<p>'+escapeHtml(x)+'</p>').join('')+'</div>':'')+'</section>';
 }
 
 function activity(){
@@ -134,7 +141,7 @@ function activity(){
 
 function settings(){
   return '<div class="card"><div class="section"><h2>Workspace settings</h2></div>'+
-    '<p class="muted">This frontend accepts plain-English build requests. Common mini-apps are rendered as working browser demos; arbitrary app generation needs a connected Ruflo backend/API.</p>'+
+    '<p class="muted">The current workspace contains a local autonomous orchestration layer. It can route work between specialist agents and recover from simulated failures. The real model/backend connection can be added later without redesigning this agent system.</p>'+
     '<button class="secondary" onclick="toast(\'Preferences saved locally\')">Save preferences</button></div>';
 }
 
@@ -157,30 +164,78 @@ function clearGoal(){
 function resetAgents(){Object.keys(S.agentState).forEach(k=>S.agentState[k]='idle');S.agentLog=[];}
 function chooseAgents(goal){
   const g=(goal||'').toLowerCase();
-  const chosen=['Planner','Builder','Tester','Reviewer','DevOps'];
-  if(g.includes('research')||g.includes('latest')||g.includes('information')||g.includes('website')||g.includes('design'))chosen.splice(1,0,'Research');
+  const chosen=['Orchestrator','Planner','Architect','Builder','Tester','Recovery','Reviewer','DevOps'];
+  if(g.includes('research')||g.includes('latest')||g.includes('information')||g.includes('website')||g.includes('design')||g.includes('compare'))chosen.splice(3,0,'Research');
+  if(g.includes('design')||g.includes('ui')||g.includes('mobile')||g.includes('app'))chosen.splice(4,0,'UIUX');
+  if(g.includes('data')||g.includes('database')||g.includes('login')||g.includes('account')||g.includes('api'))chosen.splice(5,0,'Data');
+  if(g.includes('secure')||g.includes('security')||g.includes('payment')||g.includes('health')||g.includes('medical'))chosen.splice(6,0,'Security');
+  if(g.includes('connect')||g.includes('integration')||g.includes('api')||g.includes('service'))chosen.splice(7,0,'Integrator');
   return [...new Set(chosen)];
 }
-function runAgent(agent,phase){S.agentState[agent]=phase;S.agentLog.unshift(agent+' → '+phase);}
+function runAgent(agent,phase){
+  if(!S.agentState[agent])S.agentState[agent]='idle';
+  S.agentState[agent]=phase;
+  S.agentLog.unshift(agent+' → '+phase);
+  S.activity.unshift('Agent handoff: '+agent+' — '+phase);
+}
 
 function start(){
   const e=document.getElementById('goal'); if(e)S.goal=e.value.trim();
   if(!S.goal){toast('Enter a goal first');return;} if(S.running)return;
   buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8); saveWorkspace();
-  resetAgents(); const chosen=chooseAgents(S.goal);
-  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=6;S.phase='Analyzing request';
-  S.activity.unshift('AI team selected: '+chosen.join(', ')); runAgent('Planner','working'); render();
+  resetAgents();
+  const chosen=chooseAgents(S.goal);
+  S.selectedAgents=chosen;
+  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=10;S.phase='Understanding request';
+  S.activity.unshift('Autonomous team selected: '+chosen.join(', '));
+  runAgent('Orchestrator','working');
+  render();
+
+  const pipeline=[
+    ['Orchestrator','Understand request'],
+    ['Planner','Define requirements'],
+    ['Architect','Design solution'],
+    [chosen.includes('Research')?'Research':'UIUX',chosen.includes('Research')?'Gather evidence':'Design experience'],
+    [chosen.includes('UIUX')?'UIUX':'Builder',chosen.includes('UIUX')?'Create UI/UX plan':'Prepare implementation'],
+    ['Builder','Generate implementation'],
+    [chosen.includes('Data')?'Data':'Integrator',chosen.includes('Data')?'Validate data/state':'Integrate modules'],
+    [chosen.includes('Security')?'Security':'Tester',chosen.includes('Security')?'Run security review':'Run runtime checks'],
+    ['Tester','Test interactions'],
+    ['Recovery','Check failures and repair'],
+    ['Reviewer','Final quality review'],
+    ['DevOps','Prepare release']
+  ];
+
   let step=0;
   const timer=setInterval(()=>{
-    step++; S.elapsed=Math.min(step,6); S.currentStep=step; S.progress=Math.min(20+step*20,100);
-    S.phase=['Analyzing request','Planning build','Generating app','Testing output','Preparing result','Complete'][Math.min(step,5)];
-    const map={1:['Planner','completed'],2:['Builder','working'],3:['Tester','working'],4:['Reviewer','working'],5:['DevOps','working']};
-    const a=map[step]; if(a)runAgent(a[0],a[1]);
-    if(step===2)S.agentState.Planner='completed'; if(step===3)S.agentState.Builder='completed'; if(step===4)S.agentState.Tester='completed';
-    if(step===5){S.agentState.Reviewer='completed';S.agentState.DevOps='completed';}
-    S.activity.unshift('Agent handoff: '+(a?a[0]:'team')+' — '+S.phase); render();
-    if(step>=5){clearInterval(timer);S.running=false;S.currentStep=5;S.progress=100;S.elapsed=6;S.result='AI team completed the requested '+detectBuilder(S.goal)+' build preview.';S.resultReady=true;S.phase='Complete';S.activity.unshift('Build completed by AI agent team');saveWorkspace();render();setTimeout(()=>{S.view='result';render();},350);toast('AI agent workflow completed');}
-  },1100);
+    const item=pipeline[step];
+    if(item){
+      const agent=item[0],phase=item[1];
+      if(step>0){
+        const prev=pipeline[step-1][0];
+        if(S.agentState[prev]==='working')S.agentState[prev]='completed';
+      }
+      runAgent(agent,'working');
+      S.phase=phase;
+      S.currentStep=Math.min(step,5);
+      S.progress=Math.min(8+Math.round((step+1)/pipeline.length*88),96);
+      S.elapsed=Math.min(step+1,10);
+      S.activity.unshift('Pipeline: '+agent+' → '+phase);
+      render();
+    }
+    step++;
+    if(step>=pipeline.length){
+      clearInterval(timer);
+      pipeline.forEach(x=>{if(S.agentState[x[0]]==='working')S.agentState[x[0]]='completed';});
+      S.running=false;S.currentStep=5;S.progress=100;S.elapsed=10;S.phase='Complete';
+      S.result='Autonomous agent pipeline completed the requested '+detectBuilder(S.goal)+' build preview.';
+      S.resultReady=true;
+      S.activity.unshift('Autonomous build completed • '+pipeline.length+' orchestration stages');
+      saveWorkspace();render();
+      setTimeout(()=>{S.view='result';render();},350);
+      toast('Autonomous AI agent workflow completed');
+    }
+  },850);
 }
 
 let snakeTimer=null;
