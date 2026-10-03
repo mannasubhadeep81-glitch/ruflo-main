@@ -15,7 +15,9 @@ const S={
   ],
   activity:['Workspace initialized','Agent registry loaded','Ready for a new goal'],
   elapsed:0,
-  estimated:6
+  estimated:6,
+  phase:'Ready',
+  resultReady:false
 };
 
 const steps=[
@@ -39,7 +41,7 @@ function loadWorkspace(){
   }catch(e){}
 }
 function focusBuilder(){const e=document.getElementById('goal');if(e){e.focus();e.scrollIntoView({behavior:'smooth',block:'center'});}}
-function goalChanged(value){const next=String(value||'').trim();if(next!==S.goal){S.goal=next;if(S.result){S.result='';S.progress=0;S.currentStep=-1;}S.running=false;}}
+function goalChanged(value){const next=String(value||'').trim();if(next!==S.goal){S.goal=next;if(S.result){S.result='';S.progress=0;S.currentStep=-1;}S.resultReady=false;S.phase='Ready';S.running=false;}}
 function usePreset(goal){
   S.goal=goal;S.result='';S.progress=0;S.currentStep=-1;
   saveWorkspace();render();
@@ -66,14 +68,14 @@ function nav(id,label){
 
 function render(){
   const v=S.view;
-  const title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings'}[v];
-  const body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():dashboard();
+  const title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings',result:'Build result'}[v]||'Build with an AI team';
+  const body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():v==='result'?resultPage():dashboard();
   document.getElementById('app').innerHTML=
     '<div class="shell"><aside class="side"><div class="brand"><span class="logo">R</span> Ruflo</div><nav class="nav">'+
-    nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+
+    nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+(S.resultReady?nav('result','✓ Result'):'')+
     '</nav></aside><main class="main"><header class="top"><div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">'+title+'</h1></div>'+
     '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
-    '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+'</nav></div>';
+    '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+(S.resultReady?nav('result','Result'):'')+'</nav></div>';
   // Paint the Snake board after its container is inserted into the DOM.
   if(S.result){ const g=S.goal.toLowerCase(); if(g.includes('snake')) drawSnake(); if(g.includes('temple')||g.includes('tample')||g.includes('runner')) drawTempleRun(); if(g.includes('racing')||g.includes('car race')||g.includes('racing game')) drawRacing(); if(g.includes(' game')) drawGenericGame(); }
 }
@@ -85,7 +87,8 @@ function dashboard(){
   }).join('');
   const goalText=S.goal.toLowerCase();
   const result=S.result?buildFromGoal(goalText):'';
-  const timing=S.running?'<div class="runTiming"><span>⏱ '+S.elapsed+'s elapsed</span><span>Estimated ~'+S.estimated+'s</span></div>':(S.result?'<div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Workflow finished</span></div>':'<div class="runTiming"><span>⏱ Estimated ~6s</span><span>5 steps</span></div>');
+  const remaining=Math.max(0,S.estimated-S.elapsed);
+  const timing=S.running?'<div class="runTiming"><span>⏱ '+S.elapsed+'s elapsed</span><span>~'+remaining+'s remaining</span></div>':(S.result?'<div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Build result is ready</span></div>':'<div class="runTiming"><span>⏱ Estimated ~'+S.estimated+'s</span><span>5 build steps</span></div>');
   return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. The builder detects the request and opens the matching working prototype.</p></div><button class="primary" onclick="focusBuilder()">✨ New Build</button></section>'+
     '<section class="card presets"><div class="section"><h2>Quick start</h2><span class="muted">Tap a template or write your own</span></div><div class="presetGrid">'+
     '<button onclick="usePreset(\'Build a playable Snake game with score and touch controls.\')">🐍 Snake</button>'+
@@ -137,7 +140,7 @@ function launchDemo(){
   buildHistory.unshift(S.goal);saveWorkspace();render();
 }
 function clearGoal(){
-  S.goal='';S.progress=0;S.running=false;S.currentStep=-1;S.result='';
+  S.goal='';S.progress=0;S.running=false;S.currentStep=-1;S.result='';S.resultReady=false;S.phase='Ready';
   saveWorkspace();render();
 }
 
@@ -148,15 +151,16 @@ function start(){
   buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8);
   saveWorkspace();
   if(S.running){return;}
-  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.elapsed=0;S.estimated=6;
+  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=6;S.phase='Analyzing request';
   S.activity.unshift('Building: '+detectBuilder(S.goal)+' — '+S.goal.slice(0,70));
   render();
 
   let step=0;
   const timer=setInterval(()=>{
-    step++;S.elapsed=Math.min(step+0,6);
+    step++;S.elapsed=Math.min(step,6);
     S.currentStep=step;
     S.progress=Math.min(20+step*20,100);
+    S.phase=['Analyzing request','Planning build','Generating app','Testing output','Preparing result','Complete'][Math.min(step,5)];
     S.activity.unshift('Step '+Math.min(step+1,5)+': '+(steps[Math.min(step,4)][0]));
     render();
     if(step>=5){
@@ -165,8 +169,10 @@ function start(){
       S.currentStep=5;
       S.progress=100;
       S.elapsed=6;
-      S.result='Goal received successfully: “'+S.goal+'”. The workflow plan has been prepared and the six specialist roles are ready for backend execution.';
-      S.activity.unshift('Workflow completed: '+detectBuilder(S.goal));
+      S.result='Goal received successfully: “'+S.goal+'”. The requested '+detectBuilder(S.goal)+' preview has been generated and is ready to run.';
+      S.resultReady=true;
+      S.phase='Complete';
+      S.activity.unshift('Build completed: '+detectBuilder(S.goal));
       saveWorkspace();
       render();
       setTimeout(()=>{const r=document.querySelector('.result');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},80);
@@ -258,6 +264,11 @@ function drawGenericGame(){const p=document.getElementById('genericPlayer');if(p
 function startGenericGame(){clearInterval(genericTimer);genericScore=0;genericPos=50;drawGenericGame();genericTimer=setInterval(()=>{genericScore++;if(Math.abs(genericPos-(((genericScore*7)%80)+10))<7){clearInterval(genericTimer);toast('Collision — press Start Game');}drawGenericGame()},220);}
 function genericMove(n){genericPos=Math.max(8,Math.min(92,genericPos+n*8));drawGenericGame();}
 function genericJump(){toast('Jump!');}
+
+function resultPage(){
+  if(!S.resultReady) return '<div class="card"><h2>No build result yet</h2><p class="muted">Run a build first.</p><button class="primary" onclick="setView(\'dashboard\')">Back to builder</button></div>';
+  return '<section class="card resultPage"><div class="section"><div><div class="eyebrow">Build completed</div><h2>'+escapeHtml(detectBuilder(S.goal))+'</h2></div><span class="badge done">Ready to run</span></div><div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Request matched</span></div><div class="resultBody">'+buildFromGoal(S.goal.toLowerCase())+'</div><button class="secondary" onclick="setView(\'dashboard\')">← Back to builder</button></section>';
+}
 
 function buildFromGoal(goalText){
   const g=goalText||'';
