@@ -282,6 +282,10 @@ function buildFromGoal(goalText){
   if(g.includes('counter')||g.includes('count'))return counterGame();
   if(g.includes('notes')||g.includes('note app'))return notesGame();
   if(g.includes('landing page')||g.includes('portfolio')||g.includes('website'))return landingGame();
+  if(g.includes('health')||g.includes('hospital')||g.includes('doctor')||g.includes('clinic')||g.includes('healthcare'))return healthApp();
+  if(g.includes('shop')||g.includes('ecommerce')||g.includes('e-commerce')||g.includes('store'))return shopApp();
+  if(g.includes('chat')||g.includes('messenger'))return chatApp();
+  if(g.includes('weather'))return weatherApp();
   if(g.includes(' game')||g.endsWith('game'))return genericGame(g);
   return genericApp(g);
 }
@@ -329,8 +333,21 @@ function landingGame(){
   return '<div class="card result"><div class="section"><h2>Built Website Starter</h2><span class="badge done">working</span></div><div class="landingPreview"><div class="landingHero"><span class="eyebrow">Generated from your goal</span><h2>'+escapeHtml(S.goal)+'</h2><p class="muted">A responsive starter layout with hero, feature cards and call-to-action.</p><button class="primary" onclick="toast(\'CTA clicked\')">Get started</button></div><div class="landingCards"><div>Fast</div><div>Responsive</div><div>Modern</div></div></div></div>';
 }
 
+function healthApp(){
+  return '<div class="card result"><div class="section"><h2>Built Healthcare App</h2><span class="badge done">working</span></div><div class="miniApp"><div class="miniHero"><b>Healthcare</b><p class="muted">Appointments, doctors and patient services.</p></div><div class="miniGrid"><button class="secondary" onclick="toast('Doctors opened')">👨‍⚕️ Doctors</button><button class="secondary" onclick="toast('Appointments opened')">📅 Appointments</button><button class="secondary" onclick="toast('Health records opened')">📋 Records</button><button class="secondary" onclick="toast('Emergency selected')">🚑 Emergency</button></div><button class="primary" onclick="toast('Appointment request started')">Book appointment</button></div><p class="muted">Runnable healthcare interface generated from your request.</p></div>';
+}
+function shopApp(){
+  return '<div class="card result"><div class="section"><h2>Built Store App</h2><span class="badge done">working</span></div><div class="miniApp"><div class="miniGrid"><button class="secondary" onclick="toast('Product 1 added')">📦 Product 1 · Add</button><button class="secondary" onclick="toast('Product 2 added')">📦 Product 2 · Add</button><button class="secondary" onclick="toast('Product 3 added')">📦 Product 3 · Add</button><button class="secondary" onclick="toast('Cart opened')">🛒 Cart</button></div><button class="primary" onclick="toast('Checkout started')">Checkout</button></div><p class="muted">Runnable shopping preview generated from your request.</p></div>';
+}
+function chatApp(){
+  return '<div class="card result"><div class="section"><h2>Built Chat App</h2><span class="badge done">working</span></div><div class="miniApp"><div id="chatLog" class="chatLog"><div class="chatBubble">Hello. Your chat app is ready.</div></div><div class="todoAdd"><input id="chatInput" placeholder="Type a message…"><button class="primary" onclick="sendChat()">Send</button></div></div><p class="muted">Runnable local chat interface.</p></div>';
+}
+function sendChat(){const i=document.getElementById('chatInput'),l=document.getElementById('chatLog');if(!i||!l||!i.value.trim())return;const t=escapeHtml(i.value.trim());l.innerHTML+='<div class="chatBubble user">'+t+'</div><div class="chatBubble">Message received.</div>';i.value='';l.scrollTop=l.scrollHeight;}
+function weatherApp(){
+  return '<div class="card result"><div class="section"><h2>Built Weather App</h2><span class="badge done">working</span></div><div class="miniApp"><div class="weatherMock">☀️<b> Weather Dashboard</b><p class="muted">Enter a city to preview the interface.</p></div><div class="todoAdd"><input id="cityInput" placeholder="City"><button class="primary" onclick="toast((document.getElementById(\'cityInput\')||{}).value||\'City\' + \' selected\')">Search</button></div></div><p class="muted">Runnable weather interface; live weather requires a weather API.</p></div>';
+}
 function genericApp(goal){
-  return '<div class="card result"><div class="section"><h2>App blueprint created</h2><span class="badge done">ready</span></div><div class="blueprint"><div><b>Goal</b><p>'+escapeHtml(S.goal)+'</p></div><div><b>Generated structure</b><p>Responsive interface • user actions • data state • validation • mobile controls</p></div><div><b>Next build layer</b><p>Connect a Ruflo backend/API to turn this browser preview into real AI-generated code for any app request.</p></div></div></div>';
+  return '<div class="card result"><div class="section"><h2>Built App Preview</h2><span class="badge done">working</span></div><div class="miniApp"><div class="miniHero"><b>'+escapeHtml(S.goal)+'</b><p class="muted">A runnable starter interface generated from your request.</p></div><div class="miniGrid"><button class="secondary" onclick="toast(\'Home opened\')">⌂ Home</button><button class="secondary" onclick="toast(\'Feature opened\')">⚡ Feature</button><button class="secondary" onclick="toast(\'Profile opened\')">👤 Profile</button><button class="secondary" onclick="toast(\'Settings opened\')">⚙ Settings</button></div><button class="primary" onclick="toast(\'App is running\')">▶ Run app</button></div><p class="muted">This is a runnable browser preview. Full arbitrary AI code generation will use the backend connection later.</p></div>';
 }
 
 function calculator(){
