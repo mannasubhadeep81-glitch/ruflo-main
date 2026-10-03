@@ -187,82 +187,88 @@ async function callRufloBackend(input){
   return data;
 }
 
-function start(){
+async function start(){
   const e=document.getElementById('goal'); if(e)S.goal=e.value.trim();
   if(!S.goal){toast('Enter a goal first');return;} if(S.running)return;
+
   buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8); saveWorkspace();
   resetAgents();
-  const chosen=chooseAgents(S.goal);
+  const chosen=S.agents.map(a=>a[0]);
   S.selectedAgents=chosen;
-  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.elapsed=0;S.estimated=10;S.phase='Understanding request';
-  S.activity.unshift('Autonomous team selected: '+chosen.join(', '));
-  runAgent('Orchestrator','working');
+  S.running=true;S.progress=2;S.currentStep=0;S.result='';S.resultReady=false;S.aiOutput='';S.elapsed=0;S.estimated=18;S.phase='Understanding request';
+  S.activity.unshift('13-agent AI team activated: '+chosen.join(', '));
   render();
-  callRufloBackend(S.goal).then(data=>{
-    S.activity.unshift('OpenAI backend connected');
-    if(data.output)S.aiOutput=data.output;
-    render();
-  }).catch(error=>{
-    console.error(error);
-    S.activity.unshift('OpenAI backend connection failed');
-    render();
-  });
 
   const pipeline=[
-    ['Orchestrator','Understand request and coordinate the build'],
-    ['Planner','Define requirements and execution tasks'],
-    ['Architect','Design architecture and technical decisions'],
-    ['Research','Gather relevant evidence and implementation references'],
-    ['UIUX','Create the interface and interaction plan'],
-    ['Builder','Generate the implementation'],
-    ['Data','Define and validate data, state and storage'],
-    ['Security','Review permissions, secrets and safe defaults'],
-    ['Integrator','Connect modules, services and agent handoffs'],
-    ['Tester','Run interaction and runtime checks'],
-    ['Recovery','Repair failures and prevent regressions'],
-    ['Reviewer','Perform final UX, requirements and quality review'],
-    ['DevOps','Prepare the release and deployment checks']
+    ['Orchestrator','Understand the request and define the overall objective.'],
+    ['Planner','Turn the request into concrete requirements and an executable task plan.'],
+    ['Architect','Design the technical architecture, modules, interfaces and implementation approach.'],
+    ['Research','Identify relevant technical patterns, references and constraints needed for this build.'],
+    ['UIUX','Design the user experience, screens, interactions and responsive behavior.'],
+    ['Builder','Produce the implementation plan/code structure required to build the requested result.'],
+    ['Data','Define the data model, state, validation and storage requirements.'],
+    ['Security','Review security, permissions, secrets and safe defaults for the requested build.'],
+    ['Integrator','Connect the proposed modules, services and agent handoffs into one coherent build.'],
+    ['Tester','Define and run the most important functional and interaction checks conceptually.'],
+    ['Recovery','Look for likely failures in the handoffs and propose concrete repairs or fallbacks.'],
+    ['Reviewer','Perform the final requirements, UX, quality and consistency review.'],
+    ['DevOps','Prepare the release/deployment checklist and final production-readiness handoff.']
   ];
 
-  let step=0;
-  const timer=setInterval(()=>{
-    const item=pipeline[step];
-    if(item){
-      const agent=item[0],phase=item[1];
-      if(step>0){
-        const prev=pipeline[step-1][0];
-        if(S.agentState[prev]==='working')S.agentState[prev]='completed';
-      }
-      runAgent(agent,'working');
-      S.phase=phase;
-      S.currentStep=Math.min(step,5);
-      S.progress=Math.min(8+Math.round((step+1)/pipeline.length*88),96);
-      S.elapsed=Math.min(step+1,10);
-      S.activity.unshift('Pipeline: '+agent+' → '+phase);
-      render();
-    }
-    step++;
-    if(step>=pipeline.length){
-      clearInterval(timer);
-      pipeline.forEach(x=>{if(S.agentState[x[0]]==='working')S.agentState[x[0]]='completed';});
-      S.running=false;S.currentStep=5;S.progress=100;S.elapsed=10;S.phase='Complete';
-      S.result='Playable preview ready for '+detectBuilder(S.goal)+'.';
-      S.resultReady=true;
-      S.activity.unshift('All 13 specialist agents completed their handoffs • '+pipeline.length+' orchestration stages');
-      saveWorkspace();render();
-      setTimeout(()=>{S.view='result';render();},350);
-      toast('Autonomous AI agent workflow completed');
-    }
-  },900);
-}
+  let handoff='No previous agent output. Start from the user's request.';
+  const startedAt=Date.now();
 
-function snakeGame(){
-  return '<div class="card result"><div class="section"><h2>Built Snake Game</h2><span class="badge done">playable</span></div>'+
-  '<div class="snakeWrap"><div class="snakeScore">Score: <b id="snakeScore">0</b> • High Score: <b id="snakeHigh">0</b></div>'+
-  '<div id="snakeBoard" class="snakeBoard" tabindex="0"></div>'+
-  '<div class="actions"><button class="primary" onclick="startSnake()">▶ Start / Restart</button><button class="secondary" onclick="toggleSnakePause()">⏸ Pause</button></div>'+
-  '<div class="snakeControls"><button onclick="snakeDir(0,-1)">↑</button><div><button onclick="snakeDir(-1,0)">←</button><button onclick="snakeDir(0,1)">↓</button><button onclick="snakeDir(1,0)">→</button></div></div></div>'+
-  '<p class="muted">Playable Snake game with touch/keyboard controls, scoring, collision detection and increasing speed.</p></div>';
+  for(let i=0;i<pipeline.length;i++){
+    const [agent,role]=pipeline[i];
+    S.currentStep=Math.min(5,Math.floor(i/2));
+    S.progress=Math.max(3,Math.round((i/pipeline.length)*92));
+    S.elapsed=Math.max(1,Math.round((Date.now()-startedAt)/1000));
+    S.phase=role;
+    runAgent(agent,'working');
+    S.activity.unshift('AI task started: '+agent+' — '+role);
+    render();
+
+    const prompt=[
+      'You are the '+agent+' agent inside Ruflo, an autonomous 13-agent software-building team.',
+      'Your role: '+role,
+      'User build request: '+S.goal,
+      'Previous agent handoff:',
+      handoff.slice(-5000),
+      '',
+      'Do only the work appropriate to your role. Produce a concise, concrete handoff for the next agent.',
+      'Do not claim that code, deployment, permissions, or tests happened unless the information above actually proves it.'
+    ].join('\n');
+
+    try{
+      const data=await callRufloBackend(prompt);
+      const output=String(data.output||'').trim();
+      handoff=output||('No textual output returned by '+agent+'. Continue using the role requirements.');
+      S.agentLog.unshift(agent+' → completed AI task'+(data.model?' • '+data.model:''));
+      S.activity.unshift('AI handoff received: '+agent);
+      if(agent==='Orchestrator')S.aiOutput=handoff;
+      S.agentState[agent]='completed';
+    }catch(error){
+      S.agentState[agent]='failed';
+      handoff='The '+agent+' agent could not reach the AI backend. Continue with the original request and make the safest concrete assumption.';
+      S.agentLog.unshift(agent+' → failed: '+(error?.message||'backend request failed'));
+      S.activity.unshift('AI task failed: '+agent);
+    }
+
+    S.progress=Math.round(((i+1)/pipeline.length)*96);
+    S.elapsed=Math.max(1,Math.round((Date.now()-startedAt)/1000));
+    render();
+  }
+
+  S.running=false;S.currentStep=5;S.progress=100;S.elapsed=Math.max(1,Math.round((Date.now()-startedAt)/1000));S.phase='Complete';
+  S.result='Playable preview ready for '+detectBuilder(S.goal)+'.';
+  S.resultReady=true;
+  const failed=chosen.filter(a=>S.agentState[a]==='failed');
+  S.activity.unshift(failed.length
+    ? '13-agent workflow completed with '+failed.length+' backend failure(s)'
+    : 'All 13 AI agents completed real role-specific handoffs');
+  saveWorkspace();render();
+  setTimeout(()=>{S.view='result';render();},350);
+  toast(failed.length?'Workflow completed with backend warnings':'13-agent AI workflow completed');
 }
 let snakeTimer=null;
 let snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],nextDir:[1,0],food:[9,9],score:0,running:false,paused:false,speed:180};
