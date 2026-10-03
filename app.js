@@ -39,7 +39,7 @@ function loadWorkspace(){
 function usePreset(goal){
   S.goal=goal;S.result='';S.progress=0;S.currentStep=-1;
   saveWorkspace();render();
-  setTimeout(()=>{const e=document.getElementById('goal');if(e){e.focus();e.scrollIntoView({behavior:'smooth',block:'center');}},50);
+  setTimeout(()=>{const e=document.getElementById('goal');if(e){e.focus();e.scrollIntoView({behavior:'smooth',block:'center'});}},50);
 }
 function detectBuilder(goal){
   const g=(goal||'').toLowerCase();
