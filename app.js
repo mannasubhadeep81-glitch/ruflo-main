@@ -82,7 +82,7 @@ function render(){
     '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
     '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+nav('connections','Connect')+nav('profile','Profile')+(S.resultReady?nav('result','Result'):'')+'</nav></div>';
   // Paint the Snake board after its container is inserted into the DOM.
-  if(S.result){ const g=S.goal.toLowerCase(); if(g.includes('snake')) drawSnake(); if(g.includes('temple')||g.includes('tample')||g.includes('runner')) drawTempleRun(); if(g.includes('racing')||g.includes('car race')||g.includes('racing game')) drawRacing(); if(g.includes(' game')) drawGenericGame(); }
+  if(S.result){ const g=S.goal.toLowerCase(); if(g.includes('snake')) drawSnake(); else if(g.includes('temple')||g.includes('tample')||g.includes('runner')) drawTempleRun(); else if(g.includes('racing')||g.includes('car race')||g.includes('racing game')) drawRacing(); else if(g.includes('game')) drawGenericGame(); }
 }
 
 function dashboard(){
