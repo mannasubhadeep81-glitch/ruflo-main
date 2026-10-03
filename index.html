@@ -1,1 +1,63 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090b12"><meta name="description" content="Ruflo AI Workspace"><title>Ruflo AI Workspace</title><link rel="stylesheet" href="./styles.css?v=20261003-agents6"></head><body><div id="app"><main style="font-family:system-ui,sans-serif;max-width:720px;margin:0 auto;padding:32px 20px;color:#f4f6fb;background:#090b12;min-height:100vh"><h1 style="margin:0 0 8px">Ruflo</h1><p style="opacity:.72">Loading AI workspace…</p><p style="opacity:.55;font-size:14px">If this screen stays here, reload the page once.</p></main></div><script src="./app.js?v=20261003-agents6" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090b12">
+<meta name="description" content="Ruflo AI Workspace">
+<title>Ruflo AI Workspace</title>
+<link rel="stylesheet" href="./styles.css?v=20261003-agents7">
+</head>
+<body>
+<div id="app">
+<main style="font-family:system-ui,sans-serif;max-width:900px;margin:0 auto;padding:28px 18px;color:#f4f6fb;background:#090b12;min-height:100vh">
+<h1 style="margin:0 0 6px">Ruflo</h1>
+<p style="opacity:.7">AI orchestration workspace</p>
+<section style="border:1px solid #252a38;border-radius:16px;padding:18px;margin-top:20px">
+<h2 style="margin-top:0">Build with an AI team</h2>
+<p style="opacity:.7">13 specialist agents are ready.</p>
+<textarea id="fallbackGoal" style="width:100%;min-height:110px;box-sizing:border-box;border-radius:10px;padding:12px;background:#111521;color:#fff;border:1px solid #303647" placeholder="What do you want to build?"></textarea>
+<button id="fallbackStart" style="margin-top:12px;padding:12px 18px;border:0;border-radius:10px;cursor:pointer" onclick="rufloFallbackStart()">▶ Start AI workflow</button>
+<div id="fallbackStatus" style="margin-top:14px;opacity:.75"></div>
+<div id="fallbackAgents" style="margin-top:18px;line-height:1.8"></div>
+</section>
+</main>
+</div>
+<script>
+const RUFLO_FALLBACK_BACKEND='https://ruflo-backend-xuo8.onrender.com';
+const RUFLO_FALLBACK_AGENTS=['Orchestrator','Planner','Architect','Research','UIUX','Builder','Data','Security','Integrator','Tester','Recovery','Reviewer','DevOps'];
+(function(){
+  const box=document.getElementById('fallbackAgents');
+  if(box) box.innerHTML=RUFLO_FALLBACK_AGENTS.map((a,i)=>'<span style="display:inline-block;margin:3px 5px;padding:4px 8px;border:1px solid #303647;border-radius:999px">'+(i+1)+'. '+a+'</span>').join('');
+  window.addEventListener('error',function(e){
+    const s=document.getElementById('fallbackStatus');
+    if(s) s.textContent='Ruflo main workspace failed to load, so the safe workspace is active.';
+  });
+})();
+async function rufloFallbackStart(){
+  const goal=(document.getElementById('fallbackGoal')||{}).value?.trim();
+  const status=document.getElementById('fallbackStatus');
+  const btn=document.getElementById('fallbackStart');
+  if(!goal){if(status)status.textContent='Enter a build request first.';return;}
+  if(btn)btn.disabled=true;
+  let handoff='Start from the user request.';
+  let completed=0;
+  for(const agent of RUFLO_FALLBACK_AGENTS){
+    if(status)status.textContent=agent+' agent is working… '+completed+'/13 completed';
+    try{
+      const res=await fetch(RUFLO_FALLBACK_BACKEND+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:'You are the '+agent+' agent in Ruflo. User request: '+goal+'\nPrevious handoff:\n'+handoff+'\nProduce a concise concrete handoff for the next agent. Do not claim actions that did not happen.'})});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.error||('HTTP '+res.status));
+      handoff=String(data.output||handoff);
+      completed++;
+    }catch(err){
+      if(status)status.textContent=agent+' failed: '+err.message+' — continuing safely.';
+    }
+  }
+  if(status)status.textContent='13-agent workflow finished. '+completed+' AI handoffs received.';
+  if(btn)btn.disabled=false;
+}
+</script>
+<script src="./app.js?v=20261003-agents7" defer></script>
+</body>
+</html>
