@@ -65,3 +65,9 @@
 .weatherMock{padding:28px;text-align:center;border-radius:14px;background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(0,180,255,.08));font-size:22px}
 .resultPage .resultBody{margin:16px 0}
 @media(max-width:600px){.miniGrid{grid-template-columns:1fr 1fr}.miniApp{padding:12px}}
+
+
+.connectionList{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.connectionRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.025)}
+.connectionRow>div{display:flex;flex-direction:column;gap:4px}
+.connectionRow small{display:block}
