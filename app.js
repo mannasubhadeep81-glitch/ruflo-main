@@ -181,6 +181,18 @@ function runAgent(agent,phase){
   S.activity.unshift('Agent handoff: '+agent+' — '+phase);
 }
 
+const RUFLO_BACKEND='https://ruflo-backend-xuo8.onrender.com';
+async function callRufloBackend(input){
+  const response=await fetch(RUFLO_BACKEND+'/api/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({input})
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||('Backend request failed: '+response.status));
+  return data;
+}
+
 function start(){
   const e=document.getElementById('goal'); if(e)S.goal=e.value.trim();
   if(!S.goal){toast('Enter a goal first');return;} if(S.running)return;
@@ -192,6 +204,15 @@ function start(){
   S.activity.unshift('Autonomous team selected: '+chosen.join(', '));
   runAgent('Orchestrator','working');
   render();
+  callRufloBackend(S.goal).then(data=>{
+    S.activity.unshift('OpenAI backend connected');
+    if(data.output)S.result=data.output;
+    render();
+  }).catch(error=>{
+    console.error(error);
+    S.activity.unshift('OpenAI backend connection failed');
+    render();
+  });
 
   const pipeline=[
     ['Orchestrator','Understand request'],
