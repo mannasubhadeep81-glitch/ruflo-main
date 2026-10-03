@@ -53,3 +53,15 @@
 
 .runTiming{display:flex;justify-content:space-between;gap:12px;margin-top:9px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#0d1119;color:#9da7b8;font-size:12px}
 .runTiming.done{color:#22c55e}
+
+
+.miniApp{display:flex;flex-direction:column;gap:14px;padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.025)}
+.miniHero{padding:14px;border-radius:12px;background:rgba(124,92,255,.10)}
+.miniGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.miniGrid button{min-height:48px}
+.chatLog{min-height:180px;max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:rgba(0,0,0,.18)}
+.chatBubble{align-self:flex-start;max-width:85%;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08)}
+.chatBubble.user{align-self:flex-end;background:rgba(124,92,255,.22)}
+.weatherMock{padding:28px;text-align:center;border-radius:14px;background:linear-gradient(135deg,rgba(124,92,255,.18),rgba(0,180,255,.08));font-size:22px}
+.resultPage .resultBody{margin:16px 0}
+@media(max-width:600px){.miniGrid{grid-template-columns:1fr 1fr}.miniApp{padding:12px}}
