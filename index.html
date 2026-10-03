@@ -10,10 +10,23 @@
 </head>
 <body>
 <div id="app">
-<div id="safe-shell" style="font-family:system-ui,sans-serif;display:none"></div>
-
+<div id="safe-shell" style="font-family:system-ui,sans-serif;display:block;min-height:100vh;background:#090b12;color:#f4f6fb;padding:28px;box-sizing:border-box">
+  <div style="max-width:900px;margin:auto">
+    <h1 style="margin:0 0 8px">Ruflo</h1>
+    <p style="opacity:.7">Loading AI workspace…</p>
+  </div>
 </div>
-<script src="./app.js?v=20261003-agents8" defer></script>
+</div>
+<script>
+window.addEventListener('error',function(e){
+  var s=document.getElementById('safe-shell');
+  if(s){
+    s.style.display='block';
+    s.innerHTML='<div style="max-width:900px;margin:auto"><h1>Ruflo</h1><p>Ruflo could not start in this browser.</p><pre style="white-space:pre-wrap;color:#ffb4b4">'+String(e.message||e.error||'Unknown JavaScript error').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</pre><p style="opacity:.7">Refresh once after the deployment finishes.</p></div>';
+  }
+});
+</script>
+<script src="./app.js?v=20261003-agents9" defer onerror="var s=document.getElementById('safe-shell');if(s){s.style.display='block';s.innerHTML='<div style=&quot;max-width:900px;margin:auto&quot;><h1>Ruflo</h1><p>app.js could not be loaded.</p><p style=&quot;opacity:.7&quot;>The deployment is missing or the browser cache is stale.</p></div>';}"></script>
 <script>
 (function(){
   var app=document.getElementById('app');
