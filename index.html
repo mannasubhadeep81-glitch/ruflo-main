@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#090b12">
 <meta name="description" content="Ruflo AI Workspace">
 <title>Ruflo AI Workspace</title>
-<link rel="stylesheet" href="./styles.css?v=20261003-agents8">
+<link rel="stylesheet" href="./styles.css?v=20261003-lumira-fix-1">
 </head>
 <body>
 <div id="app">
@@ -22,21 +22,21 @@ window.addEventListener('error',function(e){
   var s=document.getElementById('safe-shell');
   if(s){
     s.style.display='block';
-    s.innerHTML='<div style="max-width:900px;margin:auto"><h1>Ruflo</h1><p>Ruflo could not start in this browser.</p><pre style="white-space:pre-wrap;color:#ffb4b4">'+String(e.message||e.error||'Unknown JavaScript error').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</pre><p style="opacity:.7">Refresh once after the deployment finishes.</p></div>';
+    s.innerHTML='<div style="max-width:900px;margin:auto"><h1>Ruflo</h1><p>Ruflo could not start in this browser.</p><pre style="white-space:pre-wrap;color:#ffb4b4">'+String(e.message||e.error||'Unknown JavaScript error').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})+'</pre></div>';
   }
 });
 </script>
-<script src="./app.js?v=20261003-agents9" defer onerror="var s=document.getElementById('safe-shell');if(s){s.style.display='block';s.innerHTML='<div style=&quot;max-width:900px;margin:auto&quot;><h1>Ruflo</h1><p>app.js could not be loaded.</p><p style=&quot;opacity:.7&quot;>The deployment is missing or the browser cache is stale.</p></div>';}"></script>
+<script src="./app.js?v=20261003-lumira-fix-1" defer onerror="var s=document.getElementById('safe-shell');if(s){s.style.display='block';s.innerHTML='<div style=&quot;max-width:900px;margin:auto&quot;><h1>Ruflo</h1><p>app.js could not be loaded.</p><p style=&quot;opacity:.7&quot;>Please reopen the updated Ruflo page.</p></div>';}" ></script>
 <script>
 (function(){
-  var app=document.getElementById('app');
   var fallback=document.getElementById('safe-shell');
   setTimeout(function(){
+    var app=document.getElementById('app');
     if(app && app.textContent && app.textContent.indexOf('Loading AI workspace')>=0){
       fallback.style.display='block';
-      fallback.innerHTML='<div style="max-width:1100px;margin:auto;padding:28px 18px;color:#f4f6fb;background:#090b12;min-height:100vh"><h1>Ruflo</h1><p style="opacity:.7">AI orchestration workspace</p><section style="border:1px solid #252a38;border-radius:16px;padding:20px;margin-top:20px"><h2>Universal App Builder</h2><p style="opacity:.7">Build with the Ruflo AI team.</p><textarea id="safeGoal" style="width:100%;min-height:110px;box-sizing:border-box;border-radius:10px;padding:12px;background:#111521;color:#fff;border:1px solid #303647" placeholder="What do you want to build?"></textarea><button id="safeStart" style="margin-top:12px;padding:12px 18px;border:0;border-radius:10px">▶ Start AI workflow</button><div id="safeStatus" style="margin-top:14px;opacity:.8"></div></section></div>';
+      fallback.innerHTML='<div style="max-width:1100px;margin:auto;padding:28px 18px;color:#f4f6fb;background:#090b12;min-height:100vh"><h1>Ruflo</h1><p style="opacity:.7">AI orchestration workspace</p><p>The latest app build could not start. Reopen the latest Ruflo link.</p></div>';
     }
-  },1200);
+  },1800);
 })();
 </script>
 </body>
