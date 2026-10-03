@@ -36,6 +36,8 @@ function loadWorkspace(){
     if(Array.isArray(x.history))buildHistory=x.history;
   }catch(e){}
 }
+function focusBuilder(){const e=document.getElementById('goal');if(e){e.focus();e.scrollIntoView({behavior:'smooth',block:'center'});}}
+function goalChanged(value){const next=String(value||'').trim();if(next!==S.goal){S.goal=next;if(S.result){S.result='';S.progress=0;S.currentStep=-1;}S.running=false;}}
 function usePreset(goal){
   S.goal=goal;S.result='';S.progress=0;S.currentStep=-1;
   saveWorkspace();render();
@@ -81,7 +83,7 @@ function dashboard(){
   }).join('');
   const goalText=S.goal.toLowerCase();
   const result=S.result?buildFromGoal(goalText):'';
-  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. The builder detects the request and opens the matching working prototype.</p></div><button class="primary" onclick="launchDemo()">🎮 Try Snake Demo</button></section>'+
+  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. The builder detects the request and opens the matching working prototype.</p></div><button class="primary" onclick="focusBuilder()">✨ New Build</button></section>'+
     '<section class="card presets"><div class="section"><h2>Quick start</h2><span class="muted">Tap a template or write your own</span></div><div class="presetGrid">'+
     '<button onclick="usePreset(\'Build a playable Snake game with score and touch controls.\')">🐍 Snake</button>'+
     '<button onclick="usePreset(\'Build a Temple Run game with obstacles and touch controls.\')">🏃 Temple Run</button>'+
@@ -96,7 +98,7 @@ function dashboard(){
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
     '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
     '<section class="layout"><div class="card"><div class="section"><h2>What do you want to build?</h2><span class="muted">Plain English</span></div>'+
-    '<textarea id="goal" placeholder="Example: Build a healthcare app with login, appointments and a secure API.">'+escapeHtml(S.goal)+'</textarea>'+
+    '<textarea id="goal" oninput="goalChanged(this.value)" placeholder="Example: Build a healthcare app with login, appointments and a secure API.">'+escapeHtml(S.goal)+'</textarea>'+
     '<div class="actions"><button class="primary" onclick="start()">'+(S.running?'⏳ Workflow running…':'▶ Start AI workflow')+'</button>'+
     '<button class="secondary" onclick="clearGoal()">Clear</button></div><div class="bar"><i style="width:'+S.progress+'%"></i></div></div>'+
     '<div class="card"><div class="section"><h2>Execution plan</h2><span class="muted">'+(S.running?'Running':'Ready')+'</span></div><div class="plan">'+plan+'</div></div></section>'+result;
@@ -144,7 +146,7 @@ function start(){
   saveWorkspace();
   if(S.running){return;}
   S.running=true;S.progress=2;S.currentStep=0;S.result='';
-  S.activity.unshift('Workflow started: '+S.goal.slice(0,80));
+  S.activity.unshift('Building: '+detectBuilder(S.goal)+' — '+S.goal.slice(0,70));
   render();
 
   let step=0;
