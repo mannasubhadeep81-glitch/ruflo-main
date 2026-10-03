@@ -175,7 +175,7 @@ function start(){
       S.activity.unshift('Build completed: '+detectBuilder(S.goal));
       saveWorkspace();
       render();
-      setTimeout(()=>{const r=document.querySelector('.result');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},80);
+      setTimeout(()=>{S.view='result';render();},350);
       toast('Workflow completed');
     }
   },1100);
