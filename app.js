@@ -5,6 +5,7 @@ const S={
   goal:'',
   currentStep:-1,
   result:'',
+  aiOutput:'',
   agents:[
     ['Orchestrator','Coordinates the full build lifecycle • routing • handoffs'],
     ['Planner','Goal analysis • requirements • task graph'],
@@ -116,7 +117,7 @@ function dashboard(){
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
     '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
     '<section class="layout"><div class="card"><div class="section"><h2>What do you want to build?</h2><span class="muted">Plain English</span></div>'+
-    '<textarea id="goal" oninput="goalChanged(this.value)" placeholder="Example: Build a healthcare app with login, appointments and a secure API.">'+escapeHtml(S.goal)+'</textarea>'+
+    '<textarea id="goal" oninput="goalChanged(this.value)" placeholder="What do you want to build?">'+escapeHtml(S.goal)+'</textarea>'+
     '<div class="actions"><button class="primary" onclick="start()">'+(S.running?'⏳ Workflow running…':'▶ Start AI workflow')+'</button>'+
     '<button class="secondary" onclick="clearGoal()">Clear</button></div><div class="bar"><i style="width:'+S.progress+'%"></i></div>'+timing+'</div>'+
     '<div class="card"><div class="section"><h2>Execution plan</h2><span class="muted">'+(S.running?'Running':'Ready')+'</span></div><div class="plan">'+plan+'</div></div></section>'+result;
@@ -206,7 +207,7 @@ function start(){
   render();
   callRufloBackend(S.goal).then(data=>{
     S.activity.unshift('OpenAI backend connected');
-    if(data.output)S.result=data.output;
+    if(data.output)S.aiOutput=data.output;
     render();
   }).catch(error=>{
     console.error(error);
@@ -251,7 +252,7 @@ function start(){
       clearInterval(timer);
       pipeline.forEach(x=>{if(S.agentState[x[0]]==='working')S.agentState[x[0]]='completed';});
       S.running=false;S.currentStep=5;S.progress=100;S.elapsed=10;S.phase='Complete';
-      S.result='Autonomous agent pipeline completed the requested '+detectBuilder(S.goal)+' build preview.';
+      S.result='Playable preview ready for '+detectBuilder(S.goal)+'.';
       S.resultReady=true;
       S.activity.unshift('Autonomous build completed • '+pipeline.length+' orchestration stages');
       saveWorkspace();render();
@@ -347,7 +348,7 @@ function genericJump(){toast('Jump!');}
 
 function resultPage(){
   if(!S.resultReady) return '<div class="card"><h2>No build result yet</h2><p class="muted">Run a build first.</p><button class="primary" onclick="setView(\'dashboard\')">Back to builder</button></div>';
-  return '<section class="card resultPage"><div class="section"><div><div class="eyebrow">Build completed</div><h2>'+escapeHtml(detectBuilder(S.goal))+'</h2></div><span class="badge done">Ready to run</span></div><div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Request matched</span></div><div class="resultBody">'+buildFromGoal(S.goal.toLowerCase())+'</div><button class="secondary" onclick="setView(\'dashboard\')">← Back to builder</button></section>';
+  return '<section class="card resultPage"><div class="section"><div><div class="eyebrow">Build completed</div><h2>'+escapeHtml(detectBuilder(S.goal))+'</h2></div><span class="badge done">Ready to run</span></div><div class="runTiming done"><span>✓ Completed in '+S.elapsed+'s</span><span>Playable preview below</span></div><div class="resultBody">'+buildFromGoal(S.goal.toLowerCase())+'</div>'+(S.aiOutput?'<div class="blueprint"><b>AI build summary</b><p>'+escapeHtml(S.aiOutput.slice(0,1200))+'</p></div>':'')+'<button class="secondary" onclick="setView(\'dashboard\')">← Back to builder</button></section>';
 }
 
 function buildFromGoal(goalText){
