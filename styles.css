@@ -43,3 +43,10 @@
 .genericGameBoard{height:300px;background:linear-gradient(#101a28,#15110b)}
 .genericPlayer,.genericObstacle{position:absolute;bottom:28px;font-size:34px;transition:left .12s}
 .genericPlayer{left:50%;z-index:2}.genericObstacle{left:60%}
+
+.presets{margin-bottom:18px}
+.presetGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.presetGrid button{border:1px solid var(--line);background:#151a25;color:#fff;border-radius:11px;padding:12px 10px;text-align:left;cursor:pointer;font-weight:700}
+.presetGrid button:hover{border-color:#7c3aed;background:#1b2030}
+.presetGrid button:active{transform:scale(.98)}
+@media(max-width:700px){.presetGrid{grid-template-columns:repeat(2,1fr)}}
