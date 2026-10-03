@@ -215,7 +215,7 @@ async function start(){
     ['DevOps','Prepare the release/deployment checklist and final production-readiness handoff.']
   ];
 
-  let handoff='No previous agent output. Start from the user's request.';
+  let handoff="No previous agent output. Start from the user's request.";
   const startedAt=Date.now();
 
   for(let i=0;i<pipeline.length;i++){
