@@ -335,9 +335,18 @@ function landingGame(){
   return '<div class="card result"><div class="section"><h2>Built Website Starter</h2><span class="badge done">working</span></div><div class="landingPreview"><div class="landingHero"><span class="eyebrow">Generated from your goal</span><h2>'+escapeHtml(S.goal)+'</h2><p class="muted">A responsive starter layout with hero, feature cards and call-to-action.</p><button class="primary" onclick="toast(\'CTA clicked\')">Get started</button></div><div class="landingCards"><div>Fast</div><div>Responsive</div><div>Modern</div></div></div></div>';
 }
 
+let healthView='home';
 function healthApp(){
-  return `<div class="card result"><div class="section"><h2>Built Healthcare App</h2><span class="badge done">working</span></div><div class="miniApp"><div class="miniHero"><b>Healthcare</b><p class="muted">Appointments, doctors and patient services.</p></div><div class="miniGrid"><button class="secondary" onclick="toast('Doctors opened')">👨‍⚕️ Doctors</button><button class="secondary" onclick="toast('Appointments opened')">📅 Appointments</button><button class="secondary" onclick="toast('Health records opened')">📋 Records</button><button class="secondary" onclick="toast('Emergency selected')">🚑 Emergency</button></div><button class="primary" onclick="toast('Appointment request started')">Book appointment</button></div><p class="muted">Runnable healthcare interface generated from your request.</p></div>`;
+  const home=healthView==='home';
+  const doctors=healthView==='doctors';
+  return `<div class="card result"><div class="section"><div><h2>Built Healthcare App</h2><p class="muted">Healthcare services and doctor access.</p></div><span class="badge done">working</span></div><div class="miniApp">
+  ${home?`<div class="miniHero"><b>Healthcare</b><p class="muted">Appointments, doctors and patient services.</p></div><div class="miniGrid"><button class="secondary" onclick="openHealthDoctors()">👨‍⚕️ Doctors</button><button class="secondary" onclick="toast('Appointments opened')">📅 Appointments</button><button class="secondary" onclick="toast('Health records opened')">📋 Records</button><button class="secondary" onclick="toast('Emergency selected')">🚑 Emergency</button></div><button class="primary" onclick="toast('Appointment request started')">Book appointment</button>`:
+  doctors?`<div class="miniHero"><button class="secondary" onclick="openHealthHome()">← Back</button><h3>👨‍⚕️ Doctors</h3><p class="muted">Available doctors</p></div><div class="miniGrid"><button class="secondary" onclick="toast('Dr. Ananya selected')">Dr. Ananya · General Medicine</button><button class="secondary" onclick="toast('Dr. Rahul selected')">Dr. Rahul · Cardiology</button><button class="secondary" onclick="toast('Dr. Priya selected')">Dr. Priya · Pediatrics</button></div><button class="primary" onclick="toast('Doctor appointment started')">Book with selected doctor</button>`:
+  `<p class="muted">Section unavailable.</p>`}
+  </div><p class="muted">Doctor navigation now opens an actual in-app section instead of only showing a notification.</p></div>`;
 }
+function openHealthDoctors(){healthView='doctors';render();}
+function openHealthHome(){healthView='home';render();}
 function shopApp(){
   return `<div class="card result"><div class="section"><h2>Built Store App</h2><span class="badge done">working</span></div><div class="miniApp"><div class="miniGrid"><button class="secondary" onclick="toast('Product 1 added')">📦 Product 1 · Add</button><button class="secondary" onclick="toast('Product 2 added')">📦 Product 2 · Add</button><button class="secondary" onclick="toast('Product 3 added')">📦 Product 3 · Add</button><button class="secondary" onclick="toast('Cart opened')">🛒 Cart</button></div><button class="primary" onclick="toast('Checkout started')">Checkout</button></div><p class="muted">Runnable shopping preview generated from your request.</p></div>`;
 }
