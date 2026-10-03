@@ -24,6 +24,38 @@ const steps=[
   ['Prepare the result','Package the result']
 ];
 
+let buildHistory=[];
+function saveWorkspace(){
+  try{localStorage.setItem('ruflo_workspace',JSON.stringify({goal:S.goal,activity:S.activity.slice(0,30),history:buildHistory.slice(0,8)}));}catch(e){}
+}
+function loadWorkspace(){
+  try{
+    const x=JSON.parse(localStorage.getItem('ruflo_workspace')||'{}');
+    if(x.goal)S.goal=x.goal;
+    if(Array.isArray(x.activity)&&x.activity.length)S.activity=x.activity;
+    if(Array.isArray(x.history))buildHistory=x.history;
+  }catch(e){}
+}
+function usePreset(goal){
+  S.goal=goal;S.result='';S.progress=0;S.currentStep=-1;
+  saveWorkspace();render();
+  setTimeout(()=>{const e=document.getElementById('goal');if(e){e.focus();e.scrollIntoView({behavior:'smooth',block:'center');}},50);
+}
+function detectBuilder(goal){
+  const g=(goal||'').toLowerCase();
+  if(g.includes('snake'))return 'Snake Game';
+  if(g.includes('temple')||g.includes('tample')||g.includes('runner'))return 'Temple Run / Runner';
+  if(g.includes('racing')||g.includes('car race'))return 'Racing Game';
+  if(g.includes('calculator')||g.includes('calc'))return 'Calculator';
+  if(g.includes('todo')||g.includes('to-do')||g.includes('task list'))return 'To-do App';
+  if(g.includes('timer')||g.includes('stopwatch')||g.includes('countdown'))return 'Timer';
+  if(g.includes('quiz')||g.includes('question'))return 'Quiz';
+  if(g.includes('notes')||g.includes('note app'))return 'Notes App';
+  if(g.includes('website')||g.includes('portfolio')||g.includes('landing page'))return 'Website Starter';
+  if(g.includes('game'))return 'Game Prototype';
+  return 'App Blueprint';
+}
+
 function nav(id,label){
   return '<button class="'+(S.view===id?'active':'')+'" onclick="setView(\''+id+'\')">'+label+'</button>';
 }
@@ -49,7 +81,17 @@ function dashboard(){
   }).join('');
   const goalText=S.goal.toLowerCase();
   const result=S.result?buildFromGoal(goalText):'';
-  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Write what you want in plain English. Ruflo selects a working app builder or creates a build blueprint.</p></div><button class="primary" onclick="launchDemo()">🎮 Try Game Demo</button></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
+  return '<section class="quick card"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. The builder detects the request and opens the matching working prototype.</p></div><button class="primary" onclick="launchDemo()">🎮 Try Snake Demo</button></section>'+
+    '<section class="card presets"><div class="section"><h2>Quick start</h2><span class="muted">Tap a template or write your own</span></div><div class="presetGrid">'+
+    '<button onclick="usePreset(\'Build a playable Snake game with score and touch controls.\')">🐍 Snake</button>'+
+    '<button onclick="usePreset(\'Build a Temple Run game with obstacles and touch controls.\')">🏃 Temple Run</button>'+
+    '<button onclick="usePreset(\'Build a mobile racing game with speed and nitro.\')">🏎️ Racing</button>'+
+    '<button onclick="usePreset(\'Build a calculator app.\')">🧮 Calculator</button>'+
+    '<button onclick="usePreset(\'Build a to-do task list app.\')">✅ To-do</button>'+
+    '<button onclick="usePreset(\'Build a countdown timer.\')">⏱️ Timer</button>'+
+    '<button onclick="usePreset(\'Build a quiz app.\')">❓ Quiz</button>'+
+    '<button onclick="usePreset(\'Build a notes app.\')">📝 Notes</button>'+
+    '</div></section><section class="grid"><div class="card metric"><b>'+S.agents.length+'</b><span>Agents available</span></div>'+
     '<div class="card metric"><b>'+(S.running?1:0)+'</b><span>Active runs</span></div>'+
     '<div class="card metric"><b>'+S.progress+'%</b><span>Progress</span></div>'+
     '<div class="card metric"><b>'+(S.result?'Done':S.running?'Running':'Ready')+'</b><span>Workspace</span></div></section>'+
@@ -87,17 +129,19 @@ function launchDemo(){
   S.currentStep=5;
   S.result='Snake game generated and ready to play.';
   S.activity.unshift('Demo app launched: working Snake game');
-  render();
+  buildHistory.unshift(S.goal);saveWorkspace();render();
 }
 function clearGoal(){
   S.goal='';S.progress=0;S.running=false;S.currentStep=-1;S.result='';
-  render();
+  saveWorkspace();render();
 }
 
 function start(){
   const e=document.getElementById('goal');
   if(e)S.goal=e.value.trim();
   if(!S.goal){toast('Enter a goal first');return;}
+  buildHistory=[S.goal,...buildHistory.filter(x=>x!==S.goal)].slice(0,8);
+  saveWorkspace();
   if(S.running){return;}
   S.running=true;S.progress=2;S.currentStep=0;S.result='';
   S.activity.unshift('Workflow started: '+S.goal.slice(0,80));
@@ -116,8 +160,10 @@ function start(){
       S.currentStep=5;
       S.progress=100;
       S.result='Goal received successfully: “'+S.goal+'”. The workflow plan has been prepared and the six specialist roles are ready for backend execution.';
-      S.activity.unshift('Workflow completed: result prepared');
+      S.activity.unshift('Workflow completed: '+detectBuilder(S.goal));
+      saveWorkspace();
       render();
+      setTimeout(()=>{const r=document.querySelector('.result');if(r)r.scrollIntoView({behavior:'smooth',block:'start'});},80);
       toast('Workflow completed');
     }
   },1100);
@@ -292,6 +338,18 @@ function calcKey(k){
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 }
+
+document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='escape'&&S.running){toast('Workflow is running');return;}
+  if(['arrowup','arrowdown','arrowleft','arrowright'].includes(k)){
+    const dx=k==='arrowleft'?-1:k==='arrowright'?1:0,dy=k==='arrowup'?-1:k==='arrowdown'?1:0;
+    if(S.goal.toLowerCase().includes('snake'))snakeDir(dx,dy);
+    else if(S.goal.toLowerCase().includes('temple')||S.goal.toLowerCase().includes('tample')||S.goal.toLowerCase().includes('runner')){if(dx)runnerMove(dx);}
+    else if(S.goal.toLowerCase().includes('racing')){if(dx)raceMove(dx);}
+  }
+});
+loadWorkspace();
 
 function toast(m){
   const d=document.createElement('div');
