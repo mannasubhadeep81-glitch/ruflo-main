@@ -62,6 +62,10 @@ function usePreset(goal){
 }
 function detectBuilder(goal){
   const g=(goal||'').toLowerCase();
+  // Project names take priority over keyword matches inside a long master prompt.
+  // LUMIRA prompts may mention example apps such as calculators; that must not
+  // change the requested project type.
+  if(g.includes('lumira')||g.includes('healthcare door to door')||g.includes('one step towards humanity'))return 'LUMIRA Healthcare App';
   if(g.includes('snake'))return 'Snake Game';
   if(g.includes('temple')||g.includes('tample')||g.includes('runner'))return 'Temple Run / Runner';
   if(g.includes('racing')||g.includes('car race'))return 'Racing Game';
@@ -378,6 +382,8 @@ function resultPage(){
 
 function buildFromGoal(goalText){
   const g=goalText||'';
+  // Resolve the named project before scanning the rest of the master prompt.
+  if(g.includes('lumira')||g.includes('healthcare door to door')||g.includes('one step towards humanity'))return healthApp();
   if(g.includes('snake'))return snakeGame();
   if(g.includes('temple')||g.includes('tample')||g.includes('runner'))return templeRunGame();
   if(g.includes('racing')||g.includes('car race')||g.includes('racing game'))return racingGame();
