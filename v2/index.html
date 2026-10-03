@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090b12">
+<title>Ruflo AI Workspace v2</title>
+<style>
+body{margin:0;background:#090b12;color:#f4f6fb;font-family:system-ui,sans-serif}
+main{max-width:900px;margin:auto;padding:28px 18px;min-height:100vh;box-sizing:border-box}
+.card{border:1px solid #252a38;border-radius:16px;padding:18px;margin-top:20px;background:#0d111b}
+textarea{width:100%;min-height:120px;box-sizing:border-box;border-radius:10px;padding:12px;background:#111521;color:#fff;border:1px solid #303647}
+button{margin-top:12px;padding:12px 18px;border:0;border-radius:10px;cursor:pointer}
+.agent{display:inline-block;margin:4px;padding:5px 9px;border:1px solid #303647;border-radius:999px;font-size:13px}
+#status{margin-top:14px;opacity:.8}
+</style>
+</head>
+<body>
+<main>
+<h1>Ruflo</h1>
+<p>AI orchestration workspace · v2</p>
+<div class="card">
+<h2>Build with an AI team</h2>
+<p>13 specialist agents are ready.</p>
+<textarea id="goal" placeholder="What do you want to build?"></textarea>
+<button id="start">▶ Start AI workflow</button>
+<div id="status"></div>
+<div id="agents"></div>
+</div>
+</main>
+<script>
+const BACKEND='https://ruflo-backend-xuo8.onrender.com';
+const AGENTS=['Orchestrator','Planner','Architect','Research','UIUX','Builder','Data','Security','Integrator','Tester','Recovery','Reviewer','DevOps'];
+document.getElementById('agents').innerHTML=AGENTS.map((a,i)=>'<span class="agent">'+(i+1)+'. '+a+'</span>').join('');
+document.getElementById('start').onclick=async()=>{
+ const goal=document.getElementById('goal').value.trim(), s=document.getElementById('status'), b=document.getElementById('start');
+ if(!goal){s.textContent='Enter a build request first.';return}
+ b.disabled=true;let handoff='Start from the user request.',done=0;
+ for(const agent of AGENTS){
+  s.textContent=agent+' is working… '+done+'/13';
+  try{
+   const r=await fetch(BACKEND+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:'You are the '+agent+' agent in Ruflo. User request: '+goal+'\nPrevious handoff:\n'+handoff+'\nGive a concise concrete handoff for the next agent. Do not claim actions that did not happen.'})});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(d.error||'Backend error');
+   handoff=String(d.output||handoff);done++;
+  }catch(e){s.textContent=agent+' failed; continuing safely.'}
+ }
+ s.textContent='Workflow finished: '+done+'/13 AI handoffs received.';
+ b.disabled=false;
+};
+</script>
+</body>
+</html>
