@@ -235,9 +235,13 @@ async function start(){
       'Previous agent handoff:',
       handoff.slice(-5000),
       '',
-      'Do only the work appropriate to your role. Produce a concise, concrete handoff for the next agent.',
+      agent==='Builder'
+        ? 'For the Builder stage, produce concrete implementation output: file names, architecture, and runnable HTML/CSS/JS code or precise code patches where appropriate. Do not merely describe what could be built.'
+        : agent==='Integrator'
+          ? 'For the Integrator stage, turn the prior plan and Builder output into a coherent integration plan, explicitly identifying files, interfaces, API calls, and wiring needed for the requested app.'
+          : 'Do only the work appropriate to your role. Produce a concise, concrete handoff for the next agent.',
       'Do not claim that code, deployment, permissions, or tests happened unless the information above actually proves it.'
-    ].join('\n');
+    ].join('\\n');
 
     try{
       const data=await callRufloBackend(prompt);
