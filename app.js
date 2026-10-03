@@ -179,7 +179,7 @@ function runAgent(agent,phase){
   S.activity.unshift('Agent handoff: '+agent+' — '+phase);
 }
 
-const RUFLO_BACKEND='https://ruflo-backend-xuo8.onrender.com';
+const RUFLO_BACKEND='https://ruflo-backend-ir2k.onrender.com';
 async function callRufloBackend(input){
   const response=await fetch(RUFLO_BACKEND+'/api/chat',{
     method:'POST',
