@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090b12">
+<meta name="description" content="Ruflo AI Workspace">
+<title>Ruflo AI Workspace</title>
+<link rel="stylesheet" href="../styles.css?v=20261003-ruflo-v3">
+</head>
+<body>
+<div id="app">
+  <div class="shell">
+    <aside class="side">
+      <div class="brand"><span class="logo">R</span> Ruflo</div>
+      <nav class="nav">
+        <button class="active">⌂ Dashboard</button>
+        <button>◈ Agents</button>
+        <button>◌ Activity</button>
+        <button>⚙ Settings</button>
+        <button>🔗 Connect</button>
+        <button>👤 Profile</button>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="top">
+        <div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">Build with an AI team</h1></div>
+        <div class="status"><i class="dot"></i>System ready</div>
+      </header>
+      <section class="card quick"><div><h2>Universal App Builder</h2><p class="muted">Describe the app or game in plain English. Ruflo coordinates specialist agents, validates their handoffs, recovers from failures and prepares the result.</p></div><button class="primary" onclick="document.getElementById('goal').focus()">✨ New Build</button></section>
+      <section class="card">
+        <div class="section"><h2>What do you want to build?</h2><span class="muted">Plain English</span></div>
+        <textarea id="goal" placeholder="What do you want to build?"></textarea>
+        <div class="actions"><button class="primary" id="startFallback">▶ Start AI workflow</button></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+window.addEventListener('error',function(){});
+</script>
+<script src="../app.js?v=20261003-ruflo-v3" defer></script>
+</body>
+</html>
