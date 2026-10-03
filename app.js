@@ -17,7 +17,10 @@ const S={
   elapsed:0,
   estimated:6,
   phase:'Ready',
-  resultReady:false
+  resultReady:false,
+  profile:{name:'Ruflo Builder',role:'AI App Builder'},
+  connections:[['OpenAI / ChatGPT','AI generation','permission'],['GitHub','Code & deployment','connected'],['Canva','Design assets','available'],['Figma','UI design','available']],
+  selectedAgents:[]
 };
 
 const steps=[
@@ -68,14 +71,14 @@ function nav(id,label){
 
 function render(){
   const v=S.view;
-  const title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings',result:'Build result'}[v]||'Build with an AI team';
-  const body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():v==='result'?resultPage():dashboard();
+  const title={dashboard:'Build with an AI team',agents:'Agent control center',activity:'Execution activity',settings:'Workspace settings',connections:'Connections & permissions',profile:'Builder profile',result:'Build result'}[v]||'Build with an AI team';
+  const body=v==='agents'?agents():v==='activity'?activity():v==='settings'?settings():v==='connections'?connections():v==='profile'?profile():v==='result'?resultPage():dashboard();
   document.getElementById('app').innerHTML=
     '<div class="shell"><aside class="side"><div class="brand"><span class="logo">R</span> Ruflo</div><nav class="nav">'+
-    nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+(S.resultReady?nav('result','✓ Result'):'')+
+    nav('dashboard','⌂ Dashboard')+nav('agents','◈ Agents')+nav('activity','◌ Activity')+nav('settings','⚙ Settings')+nav('connections','🔗 Connect')+nav('profile','👤 Profile')+(S.resultReady?nav('result','✓ Result'):'')+
     '</nav></aside><main class="main"><header class="top"><div><div class="eyebrow">AI orchestration workspace</div><h1 class="title">'+title+'</h1></div>'+
     '<div class="status"><i class="dot"></i>'+(S.running?'Workflow running':'System ready')+'</div></header>'+body+
-    '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+(S.resultReady?nav('result','Result'):'')+'</nav></div>';
+    '</main><nav class="mobile">'+nav('dashboard','Home')+nav('agents','Agents')+nav('activity','Activity')+nav('settings','Settings')+nav('connections','Connect')+nav('profile','Profile')+(S.resultReady?nav('result','Result'):'')+'</nav></div>';
   // Paint the Snake board after its container is inserted into the DOM.
   if(S.result){ const g=S.goal.toLowerCase(); if(g.includes('snake')) drawSnake(); if(g.includes('temple')||g.includes('tample')||g.includes('runner')) drawTempleRun(); if(g.includes('racing')||g.includes('car race')||g.includes('racing game')) drawRacing(); if(g.includes(' game')) drawGenericGame(); }
 }
@@ -110,6 +113,9 @@ function dashboard(){
     '<div class="card"><div class="section"><h2>Execution plan</h2><span class="muted">'+(S.running?'Running':'Ready')+'</span></div><div class="plan">'+plan+'</div></div></section>'+result;
 }
 
+function profile(){return '<section class="card"><div class="section"><div><div class="eyebrow">Builder identity</div><h2>'+escapeHtml(S.profile.name)+'</h2><p class="muted">'+escapeHtml(S.profile.role)+'</p></div><span class="badge done">Ready</span></div><div class="blueprint"><div><b>How Ruflo works</b><p>You describe what to build. Ruflo plans the job, selects specialist agents, requests required permissions, builds, tests and opens the result.</p></div><div><b>Current agents</b><p>'+S.agents.map(a=>escapeHtml(a[0])).join(' • ')+'</p></div></div><button class="primary" onclick="setView(\'connections\')">Manage connections</button></section>';}
+function connections(){return '<section class="card"><div class="section"><div><div class="eyebrow">Permission hub</div><h2>Connected apps & services</h2><p class="muted">Ruflo will only request a permission when a build actually needs that service.</p></div><span class="badge done">'+S.connections.filter(x=>x[2]==='connected').length+' connected</span></div><div class="connectionList">'+S.connections.map((x,i)=>'<div class="connectionRow"><div><b>'+escapeHtml(x[0])+'</b><small class="muted">'+escapeHtml(x[1])+'</small></div><button class="'+(x[2]==='connected'?'secondary':'primary')+'" onclick="requestConnection('+i+')">'+(x[2]==='connected'?'Connected':x[2]==='pending'?'Permission requested':'Connect')+'</button></div>').join('')}</div><p class="muted">Note: Ruflo cannot silently grant third-party account permissions. The service's own authorization screen must approve access.</p></section>';}
+function requestConnection(i){const x=S.connections[i];if(!x)return;if(x[2]==='connected'){toast(x[0]+' is already connected');return;}x[2]='pending';S.activity.unshift('Permission requested: '+x[0]);render();setTimeout(()=>{toast('Authorization for '+x[0]+' must be completed in its official permission flow.');},50);}
 function agents(){
   return '<div class="card"><div class="section"><h2>Agent team</h2><button class="secondary" onclick="start()">▶ Run workflow</button></div>'+
     S.agents.map((a,i)=>'<div class="agent"><div class="avatar">◈</div><div><b>'+a[0]+'</b><br><small class="muted">'+a[1]+'</small></div><span class="badge '+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'">'+(S.running&&S.currentStep===Math.min(i,4)?'working':'idle')+'</span></div>').join('')+
