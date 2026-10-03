@@ -165,15 +165,8 @@ function clearGoal(){
 }
 
 function resetAgents(){Object.keys(S.agentState).forEach(k=>S.agentState[k]='idle');S.agentLog=[];}
-function chooseAgents(goal){
-  const g=(goal||'').toLowerCase();
-  const chosen=['Orchestrator','Planner','Architect','Builder','Tester','Recovery','Reviewer','DevOps'];
-  if(g.includes('research')||g.includes('latest')||g.includes('information')||g.includes('website')||g.includes('design')||g.includes('compare'))chosen.splice(3,0,'Research');
-  if(g.includes('design')||g.includes('ui')||g.includes('mobile')||g.includes('app'))chosen.splice(4,0,'UIUX');
-  if(g.includes('data')||g.includes('database')||g.includes('login')||g.includes('account')||g.includes('api'))chosen.splice(5,0,'Data');
-  if(g.includes('secure')||g.includes('security')||g.includes('payment')||g.includes('health')||g.includes('medical'))chosen.splice(6,0,'Security');
-  if(g.includes('connect')||g.includes('integration')||g.includes('api')||g.includes('service'))chosen.splice(7,0,'Integrator');
-  return [...new Set(chosen)];
+function chooseAgents(_goal){
+  return S.agents.map(a=>a[0]);
 }
 function runAgent(agent,phase){
   if(!S.agentState[agent])S.agentState[agent]='idle';
@@ -216,18 +209,19 @@ function start(){
   });
 
   const pipeline=[
-    ['Orchestrator','Understand request'],
-    ['Planner','Define requirements'],
-    ['Architect','Design solution'],
-    [chosen.includes('Research')?'Research':'UIUX',chosen.includes('Research')?'Gather evidence':'Design experience'],
-    [chosen.includes('UIUX')?'UIUX':'Builder',chosen.includes('UIUX')?'Create UI/UX plan':'Prepare implementation'],
-    ['Builder','Generate implementation'],
-    [chosen.includes('Data')?'Data':'Integrator',chosen.includes('Data')?'Validate data/state':'Integrate modules'],
-    [chosen.includes('Security')?'Security':'Tester',chosen.includes('Security')?'Run security review':'Run runtime checks'],
-    ['Tester','Test interactions'],
-    ['Recovery','Check failures and repair'],
-    ['Reviewer','Final quality review'],
-    ['DevOps','Prepare release']
+    ['Orchestrator','Understand request and coordinate the build'],
+    ['Planner','Define requirements and execution tasks'],
+    ['Architect','Design architecture and technical decisions'],
+    ['Research','Gather relevant evidence and implementation references'],
+    ['UIUX','Create the interface and interaction plan'],
+    ['Builder','Generate the implementation'],
+    ['Data','Define and validate data, state and storage'],
+    ['Security','Review permissions, secrets and safe defaults'],
+    ['Integrator','Connect modules, services and agent handoffs'],
+    ['Tester','Run interaction and runtime checks'],
+    ['Recovery','Repair failures and prevent regressions'],
+    ['Reviewer','Perform final UX, requirements and quality review'],
+    ['DevOps','Prepare the release and deployment checks']
   ];
 
   let step=0;
@@ -254,16 +248,14 @@ function start(){
       S.running=false;S.currentStep=5;S.progress=100;S.elapsed=10;S.phase='Complete';
       S.result='Playable preview ready for '+detectBuilder(S.goal)+'.';
       S.resultReady=true;
-      S.activity.unshift('Autonomous build completed • '+pipeline.length+' orchestration stages');
+      S.activity.unshift('All 13 specialist agents completed their handoffs • '+pipeline.length+' orchestration stages');
       saveWorkspace();render();
       setTimeout(()=>{S.view='result';render();},350);
       toast('Autonomous AI agent workflow completed');
     }
-  },850);
+  },900);
 }
 
-let snakeTimer=null;
-let snakeState={body:[[5,5],[4,5],[3,5]],dir:[1,0],food:[9,9],score:0,running:false};
 function snakeGame(){
   return '<div class="card result"><div class="section"><h2>Built Snake Game</h2><span class="badge done">playable</span></div>'+
   '<div class="snakeWrap"><div class="snakeScore">Score: <b id="snakeScore">0</b> • High Score: <b id="snakeHigh">0</b></div>'+
