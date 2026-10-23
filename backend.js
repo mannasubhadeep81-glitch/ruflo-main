@@ -38,7 +38,7 @@ async function start(){
     const res=await fetch(RUFLO_BACKEND_URL+'/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:prompt,model:'gpt-5.6-mini'})
+      body:JSON.stringify({input:prompt})
     });
 
     const data=await res.json().catch(()=>({}));
@@ -81,7 +81,7 @@ function resultPage(){
     return '<section class="card resultPage"><div class="section"><div><div class="eyebrow">Live AI build result</div><h2>'+escapeHtml(detectBuilder(S.goal))+'</h2></div><span class="badge done">OpenAI connected</span></div>'+
       '<div class="runTiming done"><span>✓ Backend response received</span><span>Live Ruflo backend</span></div>'+
       '<div class="blueprint"><b>AI build analysis</b><div class="aiOutput">'+escapeHtml(S.aiOutput).replace(/\\n/g,'<br>')+'</div></div>'+
-      '<button class="secondary" onclick="setView(\\'dashboard\\')">← Back to builder</button></section>';
+      '<button class="secondary" onclick="setView(\'dashboard\')">← Back to builder</button></section>';
   }
   return originalResultPage ? originalResultPage() : '<div class="card"><h2>No build result yet</h2></div>';
 }
