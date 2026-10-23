@@ -1,10 +1,15 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import { getAllowedOrigins, getModel, isAllowedOrigin } from "./config.js";
 
 const app = express();
+const allowedOrigins = getAllowedOrigins();
+
 app.use(cors({
-  origin: true,
+  origin(origin, callback) {
+    callback(null, isAllowedOrigin(origin, allowedOrigins));
+  },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -17,7 +22,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     service: "ruflo-backend",
     openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
-    model: "gpt-6-luna"
+    model: getModel()
   });
 });
 
@@ -30,34 +35,21 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    const { input, model = "gpt-6-luna" } = req.body || {};
-    if (!input || typeof input !== "string") {
+    const { input } = req.body || {};
+    if (typeof input !== "string" || !input.trim()) {
       return res.status(400).json({ ok: false, error: "input is required" });
+    }
+    if (input.length > 20000) {
+      return res.status(413).json({ ok: false, error: "input exceeds the 20000-character limit" });
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const response = await client.responses.create({
+      model: getModel(),
+      input: input.trim()
+    });
 
-    let response;
-    try {
-      response = await client.responses.create({
-        model,
-        input
-      });
-    } catch (firstError) {
-      console.error("Primary OpenAI request failed:", firstError);
-
-      // Compatibility fallback for accounts that have not yet received GPT-6 Luna.
-      if (model === "gpt-6-luna" && [400, 404].includes(firstError?.status)) {
-        response = await client.responses.create({
-          model: "gpt-5.6-luna",
-          input
-        });
-      } else {
-        throw firstError;
-      }
-    }
-
-    res.json({
+    return res.json({
       ok: true,
       model: response.model,
       output: response.output_text ?? "",
@@ -65,7 +57,7 @@ app.post("/api/chat", async (req, res) => {
     });
   } catch (error) {
     console.error("OpenAI request failed:", error);
-    res.status(error?.status && Number.isInteger(error.status) ? error.status : 502).json({
+    return res.status(error?.status && Number.isInteger(error.status) ? error.status : 502).json({
       ok: false,
       error: "OpenAI request failed.",
       code: error?.code || null,
