@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "build": "node --check server.js && node --check config.js && node --check app.js && node --check backend.js",
+    "build": "node --check server.js && node --check config.js && node --check app.js",
     "test": "node --test"
   },
   "dependencies": {
