@@ -1,4 +1,4 @@
-const RUFLO_BACKEND_URL = 'https://ruflo-backend.onrender.com';
+const RUFLO_BACKEND_URL = 'https://ruflo-backend-ir2k.onrender.com';
 
 async function start(){
   const e=document.getElementById('goal');
@@ -32,7 +32,7 @@ async function start(){
 
   try{
     const prompt =
-      'You are the AI builder inside Ruflo. The user asked: '+S.goal+'\\n\\n'+
+      'You are the AI builder inside Ruflo. The user asked: '+S.goal+'\n\n'+
       'Analyze the request and produce a concise build specification with: app type, core features, UI screens, data/state needs, API requirements, security considerations, testing checklist, and implementation plan. If code is appropriate, include the most important code structure or snippets. Do not claim files were created or deployed unless the system actually did so.';
 
     const res=await fetch(RUFLO_BACKEND_URL+'/api/chat',{
@@ -53,7 +53,7 @@ async function start(){
     S.phase='Complete';
     S.resultReady=true;
     S.aiOutput=String(data.output);
-    S.aiResponseId=data.id||'';
+    S.aiResponseId=data.responseId||'';
     S.result='OpenAI backend connected and returned an AI build analysis.';
     S.activity.unshift('OpenAI response received from live Ruflo backend');
     S.activity.unshift('Live backend test passed');
@@ -81,7 +81,7 @@ function resultPage(){
     return '<section class="card resultPage"><div class="section"><div><div class="eyebrow">Live AI build result</div><h2>'+escapeHtml(detectBuilder(S.goal))+'</h2></div><span class="badge done">OpenAI connected</span></div>'+
       '<div class="runTiming done"><span>✓ Backend response received</span><span>Live Ruflo backend</span></div>'+
       '<div class="blueprint"><b>AI build analysis</b><div class="aiOutput">'+escapeHtml(S.aiOutput).replace(/\\n/g,'<br>')+'</div></div>'+
-      '<button class="secondary" onclick="setView(\'dashboard\')">← Back to builder</button></section>';
+      '<button class="secondary" onclick="setView(\\'dashboard\\')">← Back to builder</button></section>';
   }
   return originalResultPage ? originalResultPage() : '<div class="card"><h2>No build result yet</h2></div>';
 }
