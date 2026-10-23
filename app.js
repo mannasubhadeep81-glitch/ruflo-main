@@ -253,7 +253,6 @@ async function start(){
       handoff=output||('No textual output returned by '+agent+'. Continue using the role requirements.');
       S.agentLog.unshift(agent+' → completed AI task'+(data.model?' • '+data.model:''));
       S.activity.unshift('AI handoff received: '+agent);
-      if(agent==='Orchestrator')S.aiOutput=handoff;
       S.agentState[agent]='completed';
     }catch(error){
       S.agentState[agent]='failed';
@@ -268,9 +267,12 @@ async function start(){
   }
 
   S.running=false;S.currentStep=5;S.progress=100;S.elapsed=Math.max(1,Math.round((Date.now()-startedAt)/1000));S.phase='Complete';
-  S.result='Playable preview ready for '+detectBuilder(S.goal)+'.';
-  S.resultReady=true;
+  S.aiOutput=handoff;
   const failed=chosen.filter(a=>S.agentState[a]==='failed');
+  S.result=failed.length
+    ? 'Workflow finished with '+failed.length+' agent(s) unable to reach the AI backend. Review the activity log before relying on this output.'
+    : 'AI workflow completed for '+detectBuilder(S.goal)+'.';
+  S.resultReady=Boolean(S.aiOutput);
   S.activity.unshift(failed.length
     ? '13-agent workflow completed with '+failed.length+' backend failure(s)'
     : 'All 13 AI agents completed real role-specific handoffs');
