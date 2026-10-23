@@ -1,4 +1,4 @@
-const RUFLO_BACKEND_URL = 'https://ruflo-backend-ir2k.onrender.com';
+const RUFLO_BACKEND_URL = 'https://ruflo-backend.onrender.com';
 
 async function start(){
   const e=document.getElementById('goal');
@@ -32,13 +32,13 @@ async function start(){
 
   try{
     const prompt =
-      'You are the AI builder inside Ruflo. The user asked: '+S.goal+'\n\n'+
+      'You are the AI builder inside Ruflo. The user asked: '+S.goal+'\\n\\n'+
       'Analyze the request and produce a concise build specification with: app type, core features, UI screens, data/state needs, API requirements, security considerations, testing checklist, and implementation plan. If code is appropriate, include the most important code structure or snippets. Do not claim files were created or deployed unless the system actually did so.';
 
     const res=await fetch(RUFLO_BACKEND_URL+'/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({input:prompt})
+      body:JSON.stringify({input:prompt,model:'gpt-5.6-mini'})
     });
 
     const data=await res.json().catch(()=>({}));
@@ -53,7 +53,7 @@ async function start(){
     S.phase='Complete';
     S.resultReady=true;
     S.aiOutput=String(data.output);
-    S.aiResponseId=data.responseId||'';
+    S.aiResponseId=data.id||'';
     S.result='OpenAI backend connected and returned an AI build analysis.';
     S.activity.unshift('OpenAI response received from live Ruflo backend');
     S.activity.unshift('Live backend test passed');
